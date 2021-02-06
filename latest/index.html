@@ -85,7 +85,7 @@
 </nav>
 <main id="content">
 <aside id="content_version">
-<p><span><strong>Version:</strong> 0000.0</span><span><strong>Build:</strong> v0000.0 Release</span></p>
+<p><span><strong>Version:</strong> 2021.1</span><span><strong>Build:</strong> v2021.1-RC3 Release</span></p>
 </aside>
 <h1 id="introduction">Introduction</h1>
 <p>TrenchBroom is a level editing program for brush-based game engines such as Quake, Quake 2, and Hexen 2. TrenchBroom is easy to use and provides many simple and advanced tools to create complex and interesting levels with ease. This document contains the manual for TrenchBroom. Reading this document will teach you how to use TrenchBroom and how to use its advanced features.</p>
@@ -1441,6 +1441,13 @@ p1*--v1---&gt;*p3</code></pre>
 <img src="images/GameEngineDialog.png" alt="Game Engine Configuration Dialog (Mac OS X)" /><figcaption>Game Engine Configuration Dialog (Mac OS X)</figcaption>
 </figure>
 <p>In this dialog, you can add a game engine profile by clicking on the '+' button below the profile list on the left, and you can delete the selected profile by clicking on the '-' button. To the right of the list, you can edit the details of the selected game engine profile, specifically its name and path. Similar to the game path, if you edit the engine path manually, you have to apply the changes by pressing <script>print_key("Return");</script> while in the path text box. Click <a href="#launching_game_engines">here</a> to find out how to launch game engines from within TrenchBroom.</p>
+<p>For some game configurations (such as for Quake, shown above) you can also optionally enter paths for a set of compilation tools. If you do, then the name shown to the left of the path can be used as a variable in your <a href="#compiling_maps">compilation profiles</a> for this game. Wherever that variable occurs, the path specified here will be used. For example if your path to the <code>qbsp</code> tool is <code>C:\mapping\ericw-tools-v0.18.1-win64\bin\qbsp.exe</code>, and you set that path here... then in your compilation profiles you can enter <code>${qbsp}</code> wherever you need to refer to that whole qbsp.exe path.</p>
+<p>The benefits of specifying your tool paths here (if the game configuration allows) are:</p>
+<ul>
+<li>It will be easier to create, edit, and share your compilation profiles.</li>
+<li>If your tool paths need to be changed, you only have to change them here.</li>
+</ul>
+<p>So in the example above, if you wanted to try a later version of ericw-tools that are located in a different folder like <code>C:\mapping\ericw-tools-v0.19-win64\bin</code>, then you would only need to change the paths in this dialog. You wouldn't need to edit all of your compilation profiles.</p>
 <h2 id="view_layout_and_rendering">View Layout and Rendering</h2>
 <figure>
 <img src="images/ViewPreferences.png" alt="View Preferences (macOS)" /><figcaption>View Preferences (macOS)</figcaption>
@@ -1618,7 +1625,7 @@ p1*--v1---&gt;*p3</code></pre>
 </table>
 </dd>
 <dt>Run Tool</dt>
-<dd><p>Runs an external tool and captures its output.</p>
+<dd><p>Runs an external tool and captures its output. Note that for the Tool parameter's value, you can use a compilation tool variable defined in the <a href="#game_configuration">game configuration</a>, as discussed below.</p>
 <table>
 <thead>
 <tr class="header">
@@ -1712,6 +1719,10 @@ p1*--v1---&gt;*p3</code></pre>
 </tr>
 </tbody>
 </table>
+<p>If the <a href="#game_configuration">game configuration</a> for the current game includes compilation tools, then the names of those tools are also available as variables in the Tool scope. The following screenshot is a section of a compilation profile showing the use of such variables.</p>
+<figure>
+<img src="images/CompilationDialogToolVars.png" alt="Compilation Dialog Section, with Tool Variables (Ubuntu Linux)" /><figcaption>Compilation Dialog Section, with Tool Variables (Ubuntu Linux)</figcaption>
+</figure>
 <p>It is recommended to use the following general process for compiling maps and to adapt it to your specified needs:</p>
 <ol type="1">
 <li>Set the working directory to <code>${MAP_DIR_PATH}</code>.</li>
@@ -2957,6 +2968,7 @@ one point per second
 </ul></li>
 <li><strong>Tags</strong> to attach additional information to faces or brushes in the editor, e.g. whether a face is detail or hint. (optional)</li>
 <li><strong>Face attributes</strong> to specify which additional attributes to allow on brush faces (optional)</li>
+<li><strong>Compilation tools</strong> that can have their paths configured by the user (optional)</li>
 </ul>
 <p>The game configuration is an <a href="#expression_language">expression language</a> map with a specific structure, which is explained using an example.</p>
 <pre><code>{
@@ -3044,15 +3056,21 @@ one point per second
                 &quot;description&quot;: &quot;The brush is water&quot;
             }
         ]
-    }
+    },
+    &quot;compilationTools&quot;: [
+        { &quot;name&quot;: &quot;qbsp&quot; },
+        { &quot;name&quot;: &quot;vis&quot; },
+        { &quot;name&quot;: &quot;light&quot; }
+    ]
 }</code></pre>
 <h4 id="versions">Versions</h4>
 <p>The game configuration files are versioned. Whenever a breaking change to the game configuration format is introduced, the version number will increase and TrenchBroom will reject the old format with an error message.</p>
 <p><strong>Current Versions</strong></p>
-<p>TrenchBroom currently supports game config versions 3 and 4. Version 4 is identical to version 3 with two exceptions:</p>
+<p>TrenchBroom currently supports game config versions 3 and 4. Version 4 has the following changes from version 3:</p>
 <ul>
 <li>Version 4 adds support for the <code>unused</code> key in surface flags and content flags; this key does not exist in version 3.</li>
 <li>Version 4 adds support for specifying a list of values for the <code>pattern</code> key in surfaceparm-type smart tags; in version 3 only a single value is allowed.</li>
+<li>Version 4 adds the optional <code>compilationTools</code> key.</li>
 </ul>
 <p><strong>Migrating from Version 2</strong></p>
 <p>Version 3 deprecated the <code>brushtypes</code> key in favor of the <code>tags</code> key, but the contents are very similar. The value of the <code>brushtypes</code> key is an array of type matchers. The following brush type matchers are supported in version 2:</p>
@@ -3456,6 +3474,14 @@ one point per second
 <p>List values must be given in array format, e.g. a default scale of 0.5 along each axis would be specified within the <code>defaults</code> object as: <code>&quot;scale&quot;: [0.5, 0.5]</code></p>
 <p>The flag names specified for <code>surfaceFlags</code> or <code>surfaceContents</code> must correspond to the <code>name</code> value for existing flags defined in the <code>surfaceflags</code> or <code>contentflags</code> (respectively) of the <code>faceattribs</code> object.</p>
 <p>The <code>color</code> value must be a string of the form &quot;R G B&quot; or &quot;R G B A&quot;. R G B and A are each a floating-point number from 0.0 to 1.0. If A is omitted it is assumed to be 1.0.</p>
+<h4 id="compilation-tools">Compilation Tools</h4>
+<p>The optional <code>compilationTools</code> list identifies tool names that will appear in the <a href="#game_configuration">game configuration dialog</a>, allowing the user to associate these names with paths to tool executables. Such a name can be used as a variable in this game's <a href="#compiling_maps">compilation profiles</a> to represent the associated path.</p>
+<p>Each element in the list is just an object with a <code>name</code> key. An example from the Quake game configuration that defines three compilation tools:</p>
+<pre><code>&quot;compilationTools&quot;: [
+    { &quot;name&quot;: &quot;qbsp&quot;},
+    { &quot;name&quot;: &quot;vis&quot;},
+    { &quot;name&quot;: &quot;light&quot;}
+]</code></pre>
 <h1 id="getting-involved">Getting Involved</h1>
 <h2 id="suggesting-a-feature">Suggesting a Feature</h2>
 <p>If you have an idea for a nice feature that you're missing in TrenchBroom, then you can submit a request at the <a href="http://github.com/TrenchBroom/TrenchBroom/issues/">TrenchBroom issue tracker</a>. Try to describe your feature, but don't go into too much detail. If it gets picked up, we will hash out the details together.</p>
