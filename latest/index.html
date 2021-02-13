@@ -1,21 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="generator" content="pandoc">
-<meta name="author" content="Kristian Duske">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="pandoc">
+<meta name="author" content="Kristian Duske"><title>TrenchBroom 2021.1 Reference Manual</title>
 <link rel="icon" href="images/icon.png">
-<title>TrenchBroom Manual</title>
+<link rel="stylesheet" href="_reset.css">
+<link rel="stylesheet" href="_variables.css">
+<link rel="stylesheet" href="_specific.css">
 <link rel="stylesheet" href="default.css">
+<link rel="stylesheet" href="_responsive.css">
+<script src="shortcuts.js"></script>
+<script src="shortcuts_helper.js"></script>
 </head>
 <body>
-<script src="shortcuts.js" charset="UTF-8"></script>
-<script src="shortcuts_helper.js" charset="UTF-8"></script>
-<section id="toc_toggler">
+<div id="toc_toggler">
 <img src="images/icon.png" alt="TrenchBroom Icon">
-<a href="#toc"><span>&#9776;</span></a>
-</section>
+<a href="#toc" title="Open Table of Contents"><span>&#9776;</span></a>
+<a href="#" title="Back to top"><span>&#8657;</span></a>
+</div>
 <nav id="toc">
 <div id="toc_inner">
 <header id="toc_inner_header">
@@ -85,8 +89,16 @@
 </nav>
 <main id="content">
 <aside id="content_version">
-<p><span><strong>Version:</strong> 2021.1</span><span><strong>Build:</strong> v2021.1-RC3 Release</span></p>
+<div id="content_version_details">
+<span id="content_version_heading">TrenchBroom 2021.1 Reference Manual</span>
+<span><strong>Build:</strong> v2021.1 Release</span>
+</div>
+<div id="content_version_links">
+<span><a href="https://trenchbroom.github.io/" target="_blank" rel="noopener noreferrer">Official website</a> - <a href="https://discord.com/invite/XaAuJVz" target="_blank" rel="noopener noreferrer">Keep in touch on Discord</a></span>
+<span><strong><a href="https://github.com/TrenchBroom/TrenchBroom/releases/latest" target="_blank" rel="noopener noreferrer">Download the latest available version</a></strong></span>
+</div>
 </aside>
+<a href="#" title="Back to top"><span>&#8657;</span></a>
 <h1 id="introduction">Introduction</h1>
 <p>TrenchBroom is a level editing program for brush-based game engines such as Quake, Quake 2, and Hexen 2. TrenchBroom is easy to use and provides many simple and advanced tools to create complex and interesting levels with ease. This document contains the manual for TrenchBroom. Reading this document will teach you how to use TrenchBroom and how to use its advanced features.</p>
 <h2 id="features">Features</h2>
@@ -261,12 +273,20 @@ p1*--v1---&gt;*p3</code></pre>
 <p>The normal axis is the axis that would be protruding from the screen when looking at the respective 2D viewport. In the case of the XY viewport, the normal axis is the positive Z axis, but in the case of the XZ viewport, the normal axis is the negative Y axis. For the mathematically inclined, the normal axis is the cross product of the right axis and the up axis. Sometimes, we will also refer to the inverted normal axis as the depth axis. So, the depth axis of the XY viewport is the negative Z axis. We also refer to the plane that is spanned by the first two axes as the view plane of a 2D viewport. Accordingly, the view plane of the XZ viewport is the X/Z plane.</p>
 <p><img src="images/Compass3D.png" alt="The compass" /> In the bottom left of each viewport, there is a compass that indicates the orientation of the camera of that viewport. In the 3D viewport, you can see how the compass rotates when you rotate the camera. In the 2D viewport, the compass axes are fixed, but they indicate which of the coordinate system axes are the right and the up axis for that viewport. The colors of the compass hands represent the axes: Red is the X axis, green is the Y axis, and blue is the Z axis (RGB vs. XYZ).</p>
 <p>At most one of the viewports can have focus, that is, only one of them can receive mouse and keyboard events. Focus is indicated by a highlight rectangle at the border of the viewport. If no viewport is focused, you have to click on one of them to give it focus. Once a viewport has focus, the focus follows the mouse pointer, that is, to move focus from one viewport to another, simply move the mouse to the other viewport. The focused viewport can also be maximized by choosing <script>print_menu_item("Menu/View/Maximize Current View");</script> from the menu. Hit the same keyboard shortcut again to restore the previous view layout.</p>
+<h3 id="map_bounds">Map Bounds</h3>
+<figure>
+<img src="images/CTF1Bounds.png" alt="McKinley Base and Quake map bounds" /><figcaption>McKinley Base and Quake map bounds</figcaption>
+</figure>
+<p>Game engines often impose a limit on the usable/playable volume of space. Trenchbroom can display this limit as a guide to use when creating your map. Such bounds will appear as an orange square or rectangle in the 2D viewports. For example, the image above shows the Quake map McKinley Base (ctf1 from Threewave CTF) within the normal bounds for a Quake map.</p>
+<p><img src="images/SoftBounds.png" alt="Map Properties (Ubuntu Linux)" /> If bounds are configured for a game, they will usually represent the limits observed by the last official release or patch of a particular game engine. Those bounds may not be correct for your situation, so you can disable or modify the displayed bounds using the Map Properties portion of the Map Inspector, as shown here. (More about the Map Inspector in the next section below.)</p>
+<p>In Quake-engine games, these bounds represent a limit on the volume that can contain players, items, or other entities. Static geometry (plain brushes) can extend further, which is why these limits are often called &quot;soft bounds&quot;. As far as TrenchBroom is concerned however, it is just drawing orange lines at whatever coordinates are indicated in the <a href="#game_configuration_files">game configuration file</a>... if this is a non-Quake-engine game then the bounds could represent something else.</p>
+<p>In any case, keep in mind that the displayed bounds are just a guide that you should use to help yourself stay within the limits of your target game engine. Changing the bounds in TrenchBroom will not change the behavior in the game!</p>
 <h3 id="the-inspector">The Inspector</h3>
 <p>The inspector is located at the right of the main window and contains various controls, distributed to several pages, to change certain properties of the currently selected objects. You can show or hide the inspector by choosing <script>print_menu_item("Menu/View/Toggle Inspector");</script>. To switch directly to a particular inspector page, choose <script>print_menu_item("Menu/View/Switch to Map Inspector");</script> for the map inspector, <script>print_menu_item("Menu/View/Switch to Entity Inspector");</script> for the entity inspector, and <script>print_menu_item("Menu/View/Switch to Face Inspector");</script> for the face inspector.</p>
 <figure>
 <img src="images/Inspector.png" alt="Map, Entity, and Face inspectors (Mac OS X)" /><figcaption>Map, Entity, and Face inspectors (Mac OS X)</figcaption>
 </figure>
-<p>The <strong>Map Inspector</strong> allows you to edit <a href="#layers">layers</a> and to set up which game modifications (<a href="#mods">mods</a>) you are working with. The <strong>Entity Inspector</strong> is the tool of choice to change the <a href="#entity_properties">properties</a> of entities. It also contains an entity browser that allows you to <a href="#creating_entities">create new entities</a> by dragging them from the browser to a viewport and it allows you to <a href="#entity_definitions">set up entity definitions</a>. Additionally, you can manage entity definition files in the entity inspector. The face inspector is used to edit the attributes of the currently selected faces. At the top, it has a graphical <a href="#uv_editor">UV editor</a>. Below that, you can edit the face attributes directly by editing their values. To select a texture for the currently selected faces, you can use the <a href="#texture_browser">texture browser</a>. Finally, the face inspector allows you to <a href="#texture_management">manage your texture collections</a>.</p>
+<p>The <strong>Map Inspector</strong> allows you to edit <a href="#layers">layers</a>, configure displayed <a href="#map_bounds">map bounds</a>, and set up which game modifications (<a href="#mods">mods</a>) you are working with. The <strong>Entity Inspector</strong> is the tool of choice to change the <a href="#entity_properties">properties</a> of entities. It also contains an entity browser that allows you to <a href="#creating_entities">create new entities</a> by dragging them from the browser to a viewport and it allows you to <a href="#entity_definitions">set up entity definitions</a>. Additionally, you can manage entity definition files in the entity inspector. The face inspector is used to edit the attributes of the currently selected faces. At the top, it has a graphical <a href="#uv_editor">UV editor</a>. Below that, you can edit the face attributes directly by editing their values. To select a texture for the currently selected faces, you can use the <a href="#texture_browser">texture browser</a>. Finally, the face inspector allows you to <a href="#texture_management">manage your texture collections</a>.</p>
 <h3 id="the-info-bar">The Info Bar</h3>
 <p>You can show or hide the info bar by choosing <script>print_menu_item("Menu/View/Toggle Info Panel");</script>. It contains the console where TrenchBroom prints out messages, warnings and errors, and the live <a href="#issue_browser">issue browser</a> where you can view, filter and resolve issues with your map.</p>
 <h2 id="camera_navigation">Camera Navigation</h2>
@@ -2968,6 +2988,7 @@ one point per second
 </ul></li>
 <li><strong>Tags</strong> to attach additional information to faces or brushes in the editor, e.g. whether a face is detail or hint. (optional)</li>
 <li><strong>Face attributes</strong> to specify which additional attributes to allow on brush faces (optional)</li>
+<li><strong>Map bounds</strong> to be displayed in the 2D viewports (optional)</li>
 <li><strong>Compilation tools</strong> that can have their paths configured by the user (optional)</li>
 </ul>
 <p>The game configuration is an <a href="#expression_language">expression language</a> map with a specific structure, which is explained using an example.</p>
@@ -3057,6 +3078,7 @@ one point per second
             }
         ]
     },
+    &quot;softMapBounds&quot;:&quot;-4096 -4096 -4096 4096 4096 4096&quot;,
     &quot;compilationTools&quot;: [
         { &quot;name&quot;: &quot;qbsp&quot; },
         { &quot;name&quot;: &quot;vis&quot; },
@@ -3070,6 +3092,7 @@ one point per second
 <ul>
 <li>Version 4 adds support for the <code>unused</code> key in surface flags and content flags; this key does not exist in version 3.</li>
 <li>Version 4 adds support for specifying a list of values for the <code>pattern</code> key in surfaceparm-type smart tags; in version 3 only a single value is allowed.</li>
+<li>Version 4 adds the optional <code>softMapBounds</code> key.</li>
 <li>Version 4 adds the optional <code>compilationTools</code> key.</li>
 </ul>
 <p><strong>Migrating from Version 2</strong></p>
@@ -3474,6 +3497,9 @@ one point per second
 <p>List values must be given in array format, e.g. a default scale of 0.5 along each axis would be specified within the <code>defaults</code> object as: <code>&quot;scale&quot;: [0.5, 0.5]</code></p>
 <p>The flag names specified for <code>surfaceFlags</code> or <code>surfaceContents</code> must correspond to the <code>name</code> value for existing flags defined in the <code>surfaceflags</code> or <code>contentflags</code> (respectively) of the <code>faceattribs</code> object.</p>
 <p>The <code>color</code> value must be a string of the form &quot;R G B&quot; or &quot;R G B A&quot;. R G B and A are each a floating-point number from 0.0 to 1.0. If A is omitted it is assumed to be 1.0.</p>
+<h4 id="map-bounds">Map Bounds</h4>
+<p>The optional <code>softMapBounds</code> key defines the default <a href="#map_bounds">map bounds</a> to draw in the 2D viewports. Its value is a string that contains the coordinates of two opposite points that define the volume enclosed by the bounds. The example here defines a cube from the point (-4096, -4096, -4096) to the point (4096, 4096, 4096):</p>
+<pre><code>&quot;softMapBounds&quot;:&quot;-4096 -4096 -4096 4096 4096 4096&quot;,</code></pre>
 <h4 id="compilation-tools">Compilation Tools</h4>
 <p>The optional <code>compilationTools</code> list identifies tool names that will appear in the <a href="#game_configuration">game configuration dialog</a>, allowing the user to associate these names with paths to tool executables. Such a name can be used as a variable in this game's <a href="#compiling_maps">compilation profiles</a> to represent the associated path.</p>
 <p>Each element in the list is just an object with a <code>name</code> key. An example from the Quake game configuration that defines three compilation tools:</p>
