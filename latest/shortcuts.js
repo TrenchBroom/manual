@@ -285,6 +285,7 @@ const menu = {
     'Menu/View/Grid/Set Grid Size 256': { path: ['View', 'Grid', 'Set Grid Size 256'], shortcut: { key: '9', modifiers: [] } },
     'Menu/View/Camera/Move to Next Point': { path: ['View', 'Camera', 'Move Camera to Next Point'], shortcut: { key: '.', modifiers: [] } },
     'Menu/View/Camera/Move to Previous Point': { path: ['View', 'Camera', 'Move Camera to Previous Point'], shortcut: { key: ',', modifiers: [] } },
+    'Menu/View/Camera/Reset 2D Cameras': { path: ['View', 'Camera', 'Reset 2D Cameras'], shortcut: { key: 'U', modifiers: ['Ctrl', 'Shift', ] } },
     'Menu/View/Camera/Focus on Selection': { path: ['View', 'Camera', 'Focus Camera on Selection'], shortcut: { key: 'U', modifiers: ['Ctrl', ] } },
     'Menu/View/Camera/Move Camera to...': { path: ['View', 'Camera', 'Move Camera to...'], shortcut: { key: '', modifiers: [] } },
     'Menu/View/Isolate': { path: ['View', 'Isolate Selection'], shortcut: { key: 'I', modifiers: ['Ctrl', ] } },
