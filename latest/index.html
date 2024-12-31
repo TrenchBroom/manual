@@ -103,7 +103,7 @@
           <img src="images/icon.png" alt="TrenchBroom Icon">
           <div>
             <span id="content_version_heading">TrenchBroom 2024.2 Reference Manual</span>
-            <span><strong>Build:</strong> v2024.2-RC1 Release</span>
+            <span><strong>Build:</strong> v2024.2 Release</span>
           </div>
         </div>
         <div id="content_version_links">
@@ -121,10 +121,8 @@
         <li>Full support for editing in 3D and in up to three 2D views</li>
         <li>High performance renderer with support for huge maps</li>
         <li>Unlimited Undo and Redo</li>
-        <li>Macro-like command repetition
-        <ul>
+        <li>Macro-like command repetition</li>
         <li>Linked groups</li>
-        </ul></li>
         <li>Issue browser with automatic quick fixes</li>
         <li>Run external compilers and launch game engines</li>
         <li>Point file support</li>
@@ -160,29 +158,32 @@
         <p>In this section we introduce some technical terms related to mapping in Quake-engine based games. It is not important that you understand every detail of all of these terms, but in order to understand how TrenchBroom works, you should have a general idea how maps are structured and how TrenchBroom views and manages that structure. In particular, this section introduces some concepts that we added to the map structures (without changing the file format, of course). Knowing and understanding these concepts will help you to get a grip on several important aspects of editing levels in TrenchBroom.</p>
         <h3 id="map-definitions">Map Definitions</h3>
         <p>In Quake-engine based games, levels are usually called maps. The following simple specification of the structure of a map is written in extended Backus-Naur-Form (EBNF), a simple syntax to define hierarchical structures that is widely used in computer science to define the syntax of computer languages. Don’t worry, you don’t have to understand EBNF as we will explain the definitions line by line.</p>
-        <pre><code>1. Map          = Entity {Entity}
-        2. Entity       = {Property} {Brush}
-        3. Property     = Key Value
-        4. Brush        = {Face}
-        5. Face         = Plane Texture Offset Scale Rotation ...</code></pre>
+        <pre><code>1. `Map      = Entity {Entity}`
+        2. `Entity   = {Property} {Brush}`
+        3. `Property = Key Value`
+        4. `Brush    = {Face}`
+        5. `Face     = Plane Texture Offset Scale Rotation ...`</code></pre>
         <p>The first line specifies that a <strong>map</strong> contains an entity followed by zero or more entities. In EBNF, the braces surrounding the word “Entity” indicate that it stands for a possibly empty sequence of entities. Altogether, line one means that a map is just a sequence of one or more entities. An <strong>entity</strong> is a possibly empty sequence of properties followed by zero or more brushes. A <strong>property</strong> is just a key-value pair, and both the key and the value are strings (this information was omitted from the EBNF).</p>
         <p>Line four defines a <strong>Brush</strong> as a possibly empty sequence of faces (but usually it will have at least four, otherwise the brush would be invalid). And in line five, we finally define that a <strong>Face</strong> has a plane, a material, the X and Y offsets and scales, the rotation angle, and possibly other attributes depending on the game.</p>
         <p>In this document, we use the term <em>object</em> to refer to entities and brushes.</p>
         <h3 id="trenchbrooms-view-of-maps">TrenchBroom’s View of Maps</h3>
         <p>TrenchBroom organizes the objects of a map a bit differently than how they are organized in the map files. Firstly, TrenchBroom introduces two additional concepts: <a href="#layers">Layers</a> and <a href="#groups">Groups</a>. Secondly, the worldspawn entity is hidden from you and its properties are associated with the map. To differentiate TrenchBroom’s view from the view that other tools and compilers have, we use the term “world” instead of “map” here. In the remainder of this document, we will use the term “map” again.</p>
-        <pre><code>1. World            = {Property} DefaultLayer {Layer}
-        2. DefaultLayer     = Layer
-        3. Layer            = Name {Group} {Entity} {Brush}
-        4. Group            = Name {Group} {Entity} {Brush}</code></pre>
+        <pre><code>1. `World        = {Property} DefaultLayer {Layer}`
+        2. `DefaultLayer = Layer`
+        3. `Layer        = Name {Group} {Entity} {Brush}`
+        4. `Group        = Name {Group} {Entity} {Brush}`</code></pre>
         <p>The first line defines the structure of a map as TrenchBroom sees it. To TrenchBroom, a <strong>World</strong> consists of zero or more properties, a default layer, and zero or more additional layers. The second line specifies that the <strong>DefaultLayer</strong> is just a layer. Then, the third line defines what a <strong>Layer</strong> is: A layer has a name (just a string), and it contains zero or more groups, zero or more entities, and zero or more brushes. In TrenchBroom, layers are used to partition a map into several large areas in order to reduce visual clutter by hiding them. In contrast, groups are used to merge a small number of objects into one object so that they can all be edited as one. Like layers, a <strong>Group</strong> is composed of a name, zero or more groups, zero or more entities, and zero or more brushes. In case you didn’t notice, groups induce a hierarchy, that is, a group can contain other sub-groups. All other definitions are exactly the same as in the previous section.</p>
         <p>To summarize, TrenchBroom sees a map as a hierarchy (a tree). The root of the hierarchy is called world and represents the entire map. The world consists first of layers, then groups, entities, and brushes, whereby groups can contain more groups, entities, and brushes, and entities can again contain brushes. Because groups can contain other groups, the hierarchy can be arbitrarily deep, although in practice groups will rarely contain more than one additional level of sub groups.</p>
         <h3 id="brush_geometry">Brush Geometry</h3>
         <p>In standard map files, the geometry of a brush is defined by a set of faces. Apart from the attributes defining the UV mapping, a face also specifies a plane using three plane points. The plane is oriented by the order in which the three points are written in the face specification in the map file. Here is an example:</p>
         <pre><code>( 32 32 -3824  ) ( -32 32 -3824  ) ( -32 96 -3824 ) mmetal1_2 0 0 0 1 1</code></pre>
         <p>The plane points are given as three groups of three numbers. Each group is made up of three numbers that specify the X,Y and Z coordinates of the respective plane point. The three points, p1, p2 and p3, define two vectors, v1 and v2, as follows:</p>
-        <pre><code>*p2</code></pre>
-        <p>/|<br />
-        | v2 | p1<em>–v1—&gt;</em>p3</p>
+        <pre><code>  *p2
+         /|\
+          |
+          v2
+          |
+        p1*--v1---&gt;*p3</code></pre>
         <p>The normal of the plane is in the direction of the cross product of v1 and v2. In the diagram above, the plane normal points towards you. Together with its normal, the plane divides three dimensional space into two half spaces: The upper half space above the plane, and the lower half space below the plane. In this interpretation, the volume of the brush is the intersection of the lower half spaces defined by the face planes. This way of defining brushes has the advantage that all brushes are automatically convex. However, this representation of brushes does not directly contain any other geometric information of the brush, particularly its vertices, edges, and facets, which must be computed from the plane representation. In TrenchBroom, the vertices, edges, and facets are called the <strong>brush geometry</strong>. TrenchBroom uses the same method as the BSP compilers to compute the brush geometry. Having the brush geometry is necessary mainly for two things: Rendering and vertex editing.</p>
         <h3 id="entity_definitions">Entity Definitions</h3>
         <p>To TrenchBroom, entities are just a sequence of properties (key value pairs), most of which are without any special meaning. In particular, the entity properties do not specify which model TrenchBroom should display for the entity in its viewports. Additionally, some property values have specific types, such as color, angle, or position. But these types cannot be hardcoded into the editor, because depending on the game, mod, or entity, a property called “angle” may have a different meaning. To give TrenchBroom more information on how to interpret a particular entity and its properties, an entity definition is necessary. Entity definitions specify the spawnflags of an entity, the names and types of its properties, the model to display in the editor, and other things. They are usually specified in a separate file that you can <a href="#entity_definition_setup">load into the editor</a>.</p>
@@ -619,11 +620,12 @@
         <h2 id="creating-objects">Creating Objects</h2>
         <p>TrenchBroom gives you various options on how to create new objects. In the following sections, we will introduce these options one by one.</p>
         <h3 id="creating-simple-shapes">Creating Simple Shapes</h3>
-        <p>The easiest way to create a new brush is to just draw it with the mouse. To draw a brush, make sure nothing is currently selected and left drag in the 3D viewport or any of the 2D viewports. If you draw a brush in the 3D viewport, its shape is controlled by the point where you initially started your drag, the point currently under the mouse, and the current grid size. Essentially, you will draw your brush on the XY plane, and its height will be set to the current grid size. But it is possible to change the height while drawing a brush by holding <script>print_key("Alt");</script>. Whenever <script>print_key("Alt");</script> is held, you can change the brush height, otherwise you control the X/Y extents of the brush.</p>
+        <p>The easiest way to create a new brush is to just draw it out with the mouse using the Simple Shape Tool. The tool is enabled by default when nothing else is selected or any other tool active. Left drag in the 3D viewport or any of the 2D viewports.</p>
+        <p>When drawing a brush in the 3D viewport, its shape is controlled from the point under the mouse where you initially started your drag, to the point currently under the mouse cursor, and the current grid size. When drawing your brush on the XY axes, the height of the brush will be set to the current grid size. While dragging you can force X and Y axes to be equal by holding <script>print_key("Shift");</script>, or force X, Y and Z axes to be equal by holding <script>print_key("Shift");</script>+<script>print_key("Alt");</script>, and its also possible to change just the height while drawing a brush by holding <script>print_key("Alt");</script>.</p>
         <figure>
         <img src="images/DrawBrush.gif" alt="" /><figcaption>Creating a cuboid in the 3D viewport</figcaption>
         </figure>
-        <p>If, on the other hand, you draw a brush in a 2D viewport, you only control its extents on whatever axes the 2D view is set to display. So if you are drawing a brush in the XZ view, you control the X/Z extents with the mouse, and there’s no way to change the Y extents directly, which is always fixed to the Y extents of the most recently selected objects. This of course applies to all of the different 2D viewports in the same way.</p>
+        <p>When drawing a brush in a 2D viewport, you only control its extents on whatever axes the 2D view is set to display. So if you are drawing a brush in the XZ view, you control the X/Z extents with the mouse, and there’s no way to change the Y extents directly, which is always fixed to the Y extents of the most recently selected objects. This of course applies to all of the different 2D viewports in the same way.</p>
         <p>In either case, the material assigned to the newly created brush is the <em>current material</em>. The current material is set by choosing a material in the <a href="#material_browser">material browser</a> or by selecting a face that already has a material. This concept applies to other ways of creating new brushes, too.</p>
         <p>This way of creating brushes only allows you to the simple shapes listed in the following table. In the next section, you will learn how to create more complex brush shapes with the complex shape tool.</p>
         <table>
@@ -656,7 +658,39 @@
         </tr>
         </tbody>
         </table>
-        <p>Note that the cylinder, cone and UV sphere shapes all have similar options, namely the number of sides and radius mode. By using the same values for these options across different shapes, TrenchBroom will create shapes that fit onto each other perfectly. The radius mode setting controls how a shape is oriented on the plane perpendicular to its axis.</p>
+        <p>Note that the cylinder, cone and UV sphere shapes all have similar options, namely the number of sides and a circle mode. By using the same values for these options across different shapes, TrenchBroom will create shapes that fit onto each other perfectly.</p>
+        <p>There are three circle modes that can be selected via the corresponding buttons:</p>
+        <table>
+        <thead>
+        <tr class="header">
+        <th>Mode</th>
+        <th>Description</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="odd">
+        <td><img src="images/CircleEdgeAligned.png" /></td>
+        <td>Creates a circle with 4 edges aligned to the bounding box</td>
+        </tr>
+        <tr class="even">
+        <td><img src="images/CircleVertexAligned.png" /></td>
+        <td>Creates a circle with 4 vertices aligned to the bounding box</td>
+        </tr>
+        <tr class="odd">
+        <td><img src="images/CircleScalable.png" /></td>
+        <td>Creates a scalable circle</td>
+        </tr>
+        </tbody>
+        </table>
+        <p>The last shape requires some explanation. It is not a perfect circle, rather, its vertices are slightly displaced so as to be perfectly aligned on the grid. Consider the following example.</p>
+        <figure>
+        <img src="images/ScalableHollowCylinder.png" alt="" /><figcaption>A scalable hollow cylinder</figcaption>
+        </figure>
+        <p>This hollow cylinder is scalable because its vertices are all aligned on the grid. Scaling it larger or smaller will keep the vertices neatly on an integer grid, and this can be beneficial for Quake-like map compilers because they usually handle geometry better when it is aligned on the grid. Scalable shapes can only have 12, 24, 48 or 96 sides. These types of curves are also called <a href="https://www.quaketerminus.com/hosted/happymaps/curv_tut.htm">CZG curves</a>.</p>
+        <figure>
+        <img src="images/ScalableCylinderStretch.gif" alt="" /><figcaption>Asymmetric scalable cylinder</figcaption>
+        </figure>
+        <p>If you create an asymmetric scalable shape, it will not be scaled to fit the bounding box drawn with the mouse like the other shapes. Rather, only the middle portion of it will be elongated so that the vertices remain on the grid. This even applies to cones and UV spheres so that the different shapes still fit together.</p>
         <h3 id="creating-complex-shapes">Creating Complex Shapes</h3>
         <p><img src="images/CreateBrushByDuplicatingPolygon.gif" alt="Drawing a rectangle and duplicating it" /> If you want to create a brush that is not a simple, axis-aligned cuboid, you can use the brush tool. The brush tool allows you to define a set of points and create the convex hull of these points. A convex hull is the smallest convex volume that contains all the points. The points become the vertices of the new brush, unless they are placed within the brush, in which case they are discarded. Accordingly, the brush tool gives you several ways to place points, but there are two limitations: First, you can only place points in the 3D viewport, and second, you can only place points by using other brushes as reference.</p>
         <p>To use the brush tool, you first have to activate it by choosing <script>print_menu_item("Menu/Edit/Tools/Brush Tool");</script>. Then, you can place single points onto the grid by left clicking on the faces of other brushes. Additionally, you can left double click on a face to place points on all of its vertices. You can also draw a rectangular shape by left dragging on an existing brush face and thereby place four points at the corners of that rectangle. Finally, if the points you have placed so far form a polygon, you can duplicate and move that polygon along its normal by left dragging it while holding <script>print_key("Shift");</script>. Once you have placed all points, hit <script>print_action("Controls/Map view/Create brush");</script> to actually create the brush.</p>
@@ -784,9 +818,9 @@
         </table>
         <p>Note that the meaning of the keyboard shortcuts depends on the viewport in which you use them. While <script>print_action("Controls/Map view/Move objects up; Move objects forward");</script> moves the selected objects in the direction of the up axis if used in a 2D viewport, it moves the objects (roughly) in the direction of the camera viewing direction (i.e. forward) on the editing plane if used in the 3D viewport. Likewise, <script>print_action("Controls/Map view/Move objects forward; Move objects down");</script> moves the selected objects in the direction of the normal axis (i.e. forward) if used in a 2D viewport and in the direction of the negative Z axis if used in the 3D viewport.</p>
         <figure>
-        <img src="images/MoveObjectsToolPage.png" alt="" /><figcaption>Additional controls for move tool</figcaption>
+        <img src="images/MoveObjectsByOffset.png" alt="" /><figcaption>Moving objects</figcaption>
         </figure>
-        <p>The move tool adds a few controls to the info bar above the viewports: A text box and a button labeled “Apply”. You can enter a vector into the text box (three space separated numbers), and if you click the button, the currently selected objects will be moved by that vector.</p>
+        <p>To move objects by a specified offset, select <script>print_menu_item("Menu/Edit/Move objects");</script> to bring up a window where you can enter a vector. Click “OK” and the currently selected objects will be moved by that vector.</p>
         <h3 id="rotating_objects">Rotating Objects</h3>
         <p>The easiest way to rotate objects in TrenchBroom is to use the following keyboard shortcuts:</p>
         <table>
@@ -1560,7 +1594,7 @@
         <figure>
         <img src="images/LinkedGroups.png" alt="" /><figcaption>Linked Groups in 3D view (macOS)</figcaption>
         </figure>
-        <p>Linked groups are rendered with a different color than regular linked groups. If you select a linked group, the editor will render arrows emanating from the selected group and ending in the other linked groups to indicate which groups will be updated when the selected group changes. These arrows are still shown if you open a linked group.</p>
+        <p>Linked groups are rendered with a different color than regular groups. If you select a linked group, the editor will render arrows emanating from the selected group and ending in the other linked groups to indicate which groups will be updated when the selected group changes. These arrows are still shown if you open a linked group.</p>
         <h3 id="linked_groups_map_file">Linked Groups in the Map File</h3>
         <p>Like regular groups, linked groups are stored in the map file using <code>func_group</code> entities with additional, TrenchBroom specific properties. If you edit a map file with linked groups in another editor than TrenchBroom and you change objects belonging to a linked group, then that linked group is out of sync with its linked counterparts. TrenchBroom will load such groups without issue and you can keep editing them as usual. However, if you change one of the linked groups, then this group will overwrite the contents of all other linked groups, so afterwards they will be in sync again. So if you purposefully changed one of the linked groups in an external editor, and want to replicate these changes into the linked groups, just open this specific group in the editor, make change to it, and close the group again. This will update all of the linked groups and they will be in sync again.</p>
         <p>Consider the following linked groups:</p>
@@ -2173,20 +2207,34 @@
         <p>A string value can be converted to a number value if and only if the string is a number literal (see below). Conversely, any number can always be converted to a string value, and the number is formatted as follows. If the number is integer, then only the decimal part and no fractional part will be added to the string. If the number is not integer, the fractional part will be formatted with a precision of 17 places.</p>
         <h3 id="expressions-and-terms">Expressions and Terms</h3>
         <p>Every expression is made of one single term. A term is something that can be evaluated, such as an addition (<code>7.0 + 3.0</code>) or a variable (which is then evaluated to its value).</p>
-        <p>Expression = GroupedTerm | Term GroupedTerm = “(” Term “)” Term = SimpleTerm | Switch | CompoundTerm</p>
-        <p>SimpleTerm = Name | Literal | Subscript | UnaryTerm | GroupedTerm CompoundTerm = AlgebraicTerm | LogicalTerm | ComparisonTerm | Case</p>
-        <p>UnaryTerm = Plus | Minus | LogicalNegation | BinaryNegation AlgebraicTerm = Addition | Subtraction | Multiplication | Division | Modulus LogicalTerm = LogicalAnd | LogicalOr BinaryTerm = BinaryAnd | BinaryXor | BinaryOr | BinaryLeftShift | BinaryRightShift ComparisonTerm = Less | LessOrEqual | Equal | Inequal | GreaterOrEqual | Greater</p>
+        <pre><code>Expression     = GroupedTerm | Term
+        GroupedTerm    = &quot;(&quot; Term &quot;)&quot;
+        Term           = SimpleTerm | Switch | CompoundTerm
+
+        SimpleTerm     = Name | Literal | Subscript | UnaryTerm | GroupedTerm
+        CompoundTerm   = AlgebraicTerm | LogicalTerm | ComparisonTerm | Case
+
+        UnaryTerm      = Plus | Minus | LogicalNegation | BinaryNegation
+        AlgebraicTerm  = Addition | Subtraction | Multiplication | Division | Modulus
+        LogicalTerm    = LogicalAnd | LogicalOr
+        BinaryTerm     = BinaryAnd | BinaryXor | BinaryOr | BinaryLeftShift | BinaryRightShift
+        ComparisonTerm = Less | LessOrEqual | Equal | Inequal | GreaterOrEqual | Greater</code></pre>
         <h3 id="names-and-literals">Names and Literals</h3>
         <p>A name is a string that begins with an alphabetic character or an underscore, possibly followed by more alphanumeric characters and underscores.</p>
-        <p>Name = ( “<em>" | Alpha ) { "</em>” | Alpha | Numeric }</p>
+        <pre><code>Name = ( &quot;_&quot; | Alpha ) { &quot;_&quot; | Alpha | Numeric }</code></pre>
         <p><code>MODS</code>, <code>_var1</code>, <code>_123</code> are all valid names while <code>1_MODS</code>, <code>$MODS</code>, <code>_$MODS</code> are not. When an expression is evaluated, all variable names are simply replaced by the values of the variables they reference. If a value is not of type <code>String</code>, it will be converted to that type. If the value is not convertible to type <code>String</code>, then an error will be thrown.</p>
         <p>A literal is either a string, a number, a boolean, an array, or a map literal.</p>
-        <p>Literal = String | Number | Boolean | Array | Map</p>
-        <p>Boolean = “true” | “false” String = """ { Char } """ | “’” { Char } “’” Number = Numeric { Numeric } [ “.” Numeric { Numeric } ]</p>
+        <pre><code>Literal = String | Number | Boolean | Array | Map
+
+        Boolean = &quot;true&quot; | &quot;false&quot;
+        String  = &quot;&quot;&quot; { Char } &quot;&quot;&quot; | &quot;&#39;&quot; { Char } &quot;&#39;&quot;
+        Number  = Numeric { Numeric } [ &quot;.&quot; Numeric { Numeric } ]</code></pre>
         <p>Note that strings can either be enclosed by double or single quotes, but you cannot mix these two styles. If you enclose a string by double quotes, you need to escape all literal double quotes within the string with backslashes like so: “this is a \”fox\"", but this is not necessary when using single quotes to enclose that string: ‘this is a “fox”’ is also a valid string literal.</p>
         <p>Further note that number literals need not contain a fractional part and can be written like integers, i.e. <code>1</code> instead of <code>1.0</code>.</p>
         <p>Array literals can be specified by giving a comma-separated list of expressions or ranges enclosed in brackets.</p>
-        <p>Array = “[" [ ExpOrRange { "," ExpOrRange } ] "]” ExpOrRange = Expression | Range Range = Expression “..” Expression</p>
+        <pre><code>Array      = &quot;[&quot; [ ExpOrRange { &quot;,&quot; ExpOrRange } ] &quot;]&quot;
+        ExpOrRange = Expression | Range
+        Range      = Expression &quot;..&quot; Expression</code></pre>
         <p>An array literal is a possibly empty comma-separated list of expressions or ranges. A range is a special type that represents a range of integer values. Ranges are specified by two expressions separated by two dots. A range denotes a list of number values, so both expressions must evaluate to a value that is convertible to type <code>Number</code>. The first expression denotes the starting value of the range, and the second expression denotes the ending value of the range, both of which are inclusive. The range <code>1.0..3.0</code> therefore denotes the list <code>1.0</code>, <code>2.0</code>, <code>3.0</code>. Note that the starting value may also be greater than the ending value, e.g. <code>3.0..1.0</code>, which denotes the same list as <code>1.0..3.0</code>, but in the opposite order.</p>
         <p>The following table gives some examples of valid array literal expressions.</p>
         <table>
@@ -2198,43 +2246,47 @@
         </thead>
         <tbody>
         <tr class="odd">
-        <td>[]</td>
+        <td><code>[]</code></td>
         <td>An empty array.</td>
         </tr>
         <tr class="even">
-        <td>[1,2,3]</td>
+        <td><code>[1,2,3]</code></td>
         <td>An array containing the values <code>1.0</code>, <code>2.0</code>, and <code>3.0</code>.</td>
         </tr>
         <tr class="odd">
-        <td>[1..3]</td>
+        <td><code>[1..3]</code></td>
         <td>An array containing the values <code>1.0</code>, <code>2.0</code>, and <code>3.0</code>.</td>
         </tr>
         <tr class="even">
-        <td>[1,2,4..6]</td>
+        <td><code>[1,2,4..6]</code></td>
         <td>An array containing the values <code>1.0</code>, <code>2.0</code>, <code>4.0</code>, <code>5.0</code>, and <code>6.0</code>.</td>
         </tr>
         <tr class="odd">
-        <td>[1+1,3.0]</td>
+        <td><code>[1+1,3.0]</code></td>
         <td>An array containing the values <code>2.0</code> and <code>3.0</code>.</td>
         </tr>
         <tr class="even">
-        <td>[-5,-1]</td>
+        <td><code>[-5,-1]</code></td>
         <td>An array containing the values <code>-5.0</code>, <code>-4.0</code>, …, <code>-1.0</code>.</td>
         </tr>
         </tbody>
         </table>
         <p>A map is a comma-separated list of of key-value pairs, enclosed in braces. Note that keys are strings or names. To use certain special characters or whitespace in the key, it must be given as a string. The value is separated from the key by a colon character.</p>
-        <p>Map = “{” [ KeyValuePair { “,” KeyValuePair } ] “}” KeyValuePair = StringOrName “:” Expression StringOrName = String | Name</p>
+        <pre><code>Map          = &quot;{&quot; [ KeyValuePair { &quot;,&quot; KeyValuePair } ] &quot;}&quot;
+        KeyValuePair = StringOrName &quot;:&quot; Expression
+        StringOrName = String | Name</code></pre>
         <p>An example of a valid map expression looks as follows:</p>
         <pre><code>{
-          &quot;some key&quot;   : &quot;a string&quot;,
-          other_key  : 1+2,
+          &quot;some key&quot;:  &quot;a string&quot;,
+          other_key:   1+2,
           another_key: [1..3]
         }</code></pre>
         <p>This expression evaluates to a map containing the value <code>"a string"</code> under the key <code>some key</code>, the value <code>3.0</code> under the key <code>other_key</code>, and an array containing the values <code>1.0</code>, <code>2.0</code>, and <code>3.0</code> under the key <code>another_key</code>.</p>
         <h3 id="subscript">Subscript</h3>
         <p>Certain values such as strings, arrays, or maps can be subscripted to access some of their elements.</p>
-        <p>Subscript = SimpleTerm “[" ExpOrAnyRange { "," ExpOrAnyRange } "]” ExpOrAnyRange = ExpOrRange | AutoRange AutoRange = “..” Expression | Expression “..”</p>
+        <pre><code>Subscript     = SimpleTerm &quot;[&quot; ExpOrAnyRange { &quot;,&quot; ExpOrAnyRange } &quot;]&quot;
+        ExpOrAnyRange = ExpOrRange | AutoRange
+        AutoRange     = &quot;..&quot; Expression | Expression &quot;..&quot;</code></pre>
         <p>A subscript expression comprises of two parts: The expression that is being indexed and the indexing expression. The former can be any expression that evaluates to a value of type <code>String</code>, <code>Array</code> or <code>Map</code>, while the latter is a list of expressions or ranges. Depending of the type of the expression being subscripted, only certain values are allows as indices. The following sections explain which types of indexing values are permissible for the three subscriptable types.</p>
         <h4 id="subscripting-strings">Subscripting Strings</h4>
         <p>The following table explains the permissible indexing types and their effects.</p>
@@ -2297,7 +2349,9 @@
         <p>Just like string subscripts, array subscripts are very powerful because they allow multiple subscript index values and even negative indices. For the following examples, assume that the variable <code>arr</code> is the following array:</p>
         <pre><code>[ 7, 8, 9, &quot;test&quot;, [ 10, 11, 12 ] ]</code></pre>
         <p>Simple subscripting with integer indices behaves as expected:</p>
-        <p>arr[0] // 7 arr[3] // “test” arr[4] // [10, 11, 12]</p>
+        <pre><code>arr[0] // 7
+        arr[3] // &quot;test&quot;
+        arr[4] // [10, 11, 12]</code></pre>
         <p>Multiple indices, or array indices, can be used to extract sub arrays. Range expressions are a shorter way of extracting sub arrays.</p>
         <pre><code>arr[0, 1, 2, 3] // [ 7, 9, 9, &quot;test&quot; ]
         arr[0..3]       // [ 7, 9, 9, &quot;test&quot; ]
@@ -2356,11 +2410,14 @@
         map[&quot;some map&quot;][&quot;key2&quot;][1..3] // &quot;ey2&quot;</code></pre>
         <h3 id="unary-operator-terms">Unary Operator Terms</h3>
         <p>A unary operator is an operator that applies to a single operand. In TrenchBroom’s expression language, there are four unary operators: unary plus, unary minus, logical negation, and binary negation.</p>
-        <p>Plus = “+” SimpleTerm Minus = “-” SimpleTerm LogicalNegation = “!” SimpleTerm BinaryNegation = “~” SimpleTerm</p>
+        <pre><code>Plus            = &quot;+&quot; SimpleTerm
+        Minus           = &quot;-&quot; SimpleTerm
+        LogicalNegation = &quot;!&quot; SimpleTerm
+        BinaryNegation  = &quot;~&quot; SimpleTerm</code></pre>
         <p>The following table explains the effects of applying the unary operators to values depending on the type of the values.</p>
         <table style="width:100%;">
         <colgroup>
-        <col style="width: 19%" />
+        <col style="width: 18%" />
         <col style="width: 18%" />
         <col style="width: 13%" />
         <col style="width: 13%" />
@@ -2372,61 +2429,61 @@
         </colgroup>
         <thead>
         <tr class="header">
-        <th>Operator</th>
-        <th style="text-align: right;"><code>Boolean</code></th>
-        <th style="text-align: right;"><code>String</code></th>
-        <th style="text-align: right;"><code>Number</code></th>
-        <th style="text-align: right;"><code>Array</code></th>
-        <th style="text-align: right;"><code>Map</code></th>
-        <th style="text-align: right;"><code>Range</code></th>
-        <th style="text-align: right;"><code>Null</code></th>
-        <th style="text-align: right;"><code>Undefined</code></th>
+        <th>Operator `</th>
+        <th>Boolean<code></code></th>
+        <th>String<code></code></th>
+        <th>Number<code></code></th>
+        <th>Array<code></code></th>
+        <th>Map<code></code></th>
+        <th>Range<code></code></th>
+        <th>Null<code></code></th>
+        <th>Undefined`</th>
         </tr>
         </thead>
         <tbody>
         <tr class="odd">
         <td><code>Plus</code></td>
-        <td style="text-align: right;">convert to number</td>
-        <td style="text-align: right;">see below</td>
-        <td style="text-align: right;">no effect</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
+        <td>convert to number</td>
+        <td>see below</td>
+        <td>no effect</td>
+        <td>error</td>
+        <td>error</td>
+        <td>error</td>
+        <td>error</td>
+        <td>error</td>
         </tr>
         <tr class="even">
         <td><code>Minus</code></td>
-        <td style="text-align: right;">convert to number and negate value</td>
-        <td style="text-align: right;">see below</td>
-        <td style="text-align: right;">negate value</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
+        <td>convert to number and negate value</td>
+        <td>see below</td>
+        <td>negate value</td>
+        <td>error</td>
+        <td>error</td>
+        <td>error</td>
+        <td>error</td>
+        <td>error</td>
         </tr>
         <tr class="odd">
         <td><code>LogicalNegation</code></td>
-        <td style="text-align: right;">invert value</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
+        <td>invert value</td>
+        <td>error</td>
+        <td>error</td>
+        <td>error</td>
+        <td>error</td>
+        <td>error</td>
+        <td>error</td>
+        <td>error</td>
         </tr>
         <tr class="even">
         <td><code>BinaryNegation</code></td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">see below</td>
-        <td style="text-align: right;">invert bits</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
-        <td style="text-align: right;">error</td>
+        <td>error</td>
+        <td>see below</td>
+        <td>invert bits</td>
+        <td>error</td>
+        <td>error</td>
+        <td>error</td>
+        <td>error</td>
+        <td>error</td>
         </tr>
         </tbody>
         </table>
@@ -2446,7 +2503,11 @@
         <p>A binary operator is an operator that takes two operands. Binary operators are specified in infix notation, that is, the first operator is specified first, then the operator symbol, and finally the second operator. Note that in the following EBNF notation for binary operators, the second operator is always an expression.</p>
         <h4 id="algebraic-terms">Algebraic Terms</h4>
         <p>Algebraic terms are terms that use the binary operators <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, or <code>%</code>.</p>
-        <p>Addition = SimpleTerm “+” Expression Subtraction = SimpleTerm “-” Expression Multiplication = SimpleTerm "*" Expression Division = SimpleTerm “/” Expression Modulus = SimpleTerm “%” Expression</p>
+        <pre><code>Addition       = SimpleTerm &quot;+&quot; Expression
+        Subtraction    = SimpleTerm &quot;-&quot; Expression
+        Multiplication = SimpleTerm &quot;*&quot; Expression
+        Division       = SimpleTerm &quot;/&quot; Expression
+        Modulus        = SimpleTerm &quot;%&quot; Expression</code></pre>
         <p>All of these operators can be applied to operands of type <code>Boolean</code> or <code>Number</code>. If an operand is of type <code>Boolean</code>, it is converted to type <code>Number</code> before the operation is applied.</p>
         <p>If one of the operators is of type <code>Boolean</code> or <code>Number</code> and the other operand is of type <code>String</code>, and its value can be converted to a number, then the operand can be applied, and the operand of type <code>String</code> is also converted to type <code>Number</code>.</p>
         <pre><code>&quot;1.23&quot; + 1 // 2.23
@@ -2460,41 +2521,42 @@
         <p>Note that the value under key <code>'k3'</code> is <code>4</code> and not <code>3</code>!</p>
         <h4 id="logical-terms">Logical Terms</h4>
         <p>Logical terms can be applied to if both operands are of type <code>Boolean</code>. If one of the operands is not of type <code>Boolean</code>, an error is thrown.</p>
-        <p>LogicalAnd = SimpleTerm “&amp;&amp;” Expression LogicalOr = SimpleTerm “||” Expression</p>
+        <pre><code>LogicalAnd = SimpleTerm &quot;&amp;&amp;&quot; Expression
+        LogicalOr  = SimpleTerm &quot;||&quot; Expression</code></pre>
         <p>The following table shows the effects of applying the logical operators.</p>
         <table>
         <thead>
         <tr class="header">
-        <th style="text-align: center;">Left</th>
-        <th style="text-align: center;">Right</th>
-        <th style="text-align: center;">&amp;&amp;</th>
-        <th style="text-align: center;">||</th>
+        <th style="text-align: left;">Left</th>
+        <th style="text-align: left;">Right</th>
+        <th style="text-align: left;">&amp;&amp;</th>
+        <th style="text-align: left;">||</th>
         </tr>
         </thead>
         <tbody>
         <tr class="odd">
-        <td style="text-align: center;"><code>true</code></td>
-        <td style="text-align: center;"><code>true</code></td>
-        <td style="text-align: center;"><code>true</code></td>
-        <td style="text-align: center;"><code>true</code></td>
+        <td style="text-align: left;"><code>true</code></td>
+        <td style="text-align: left;"><code>true</code></td>
+        <td style="text-align: left;"><code>true</code></td>
+        <td style="text-align: left;"><code>true</code></td>
         </tr>
         <tr class="even">
-        <td style="text-align: center;"><code>true</code></td>
-        <td style="text-align: center;"><code>false</code></td>
-        <td style="text-align: center;"><code>false</code></td>
-        <td style="text-align: center;"><code>true</code></td>
+        <td style="text-align: left;"><code>true</code></td>
+        <td style="text-align: left;"><code>false</code></td>
+        <td style="text-align: left;"><code>false</code></td>
+        <td style="text-align: left;"><code>true</code></td>
         </tr>
         <tr class="odd">
-        <td style="text-align: center;"><code>false</code></td>
-        <td style="text-align: center;"><code>true</code></td>
-        <td style="text-align: center;"><code>false</code></td>
-        <td style="text-align: center;"><code>true</code></td>
+        <td style="text-align: left;"><code>false</code></td>
+        <td style="text-align: left;"><code>true</code></td>
+        <td style="text-align: left;"><code>false</code></td>
+        <td style="text-align: left;"><code>true</code></td>
         </tr>
         <tr class="even">
-        <td style="text-align: center;"><code>false</code></td>
-        <td style="text-align: center;"><code>false</code></td>
-        <td style="text-align: center;"><code>false</code></td>
-        <td style="text-align: center;"><code>false</code></td>
+        <td style="text-align: left;"><code>false</code></td>
+        <td style="text-align: left;"><code>false</code></td>
+        <td style="text-align: left;"><code>false</code></td>
+        <td style="text-align: left;"><code>false</code></td>
         </tr>
         </tbody>
         </table>
@@ -2517,7 +2579,12 @@
         2 &gt;&gt; 1 // 1</code></pre>
         <h4 id="comparison-terms">Comparison Terms</h4>
         <p>Comparison operators always return a boolean value depending on the result of the comparison.</p>
-        <p>Less = SimpleTerm “&lt;” Expression LessOrEqual = SimpleTerm “&lt;=” Expression Equal = SimpleTerm “==” Expression InEqual = SimpleTerm “!=” Expression GreaterOrEqual = SimpleTerm “&gt;=” Expression Greater = SimpleTerm “&gt;” Expression</p>
+        <pre><code>Less           = SimpleTerm &quot;&lt;&quot;  Expression
+        LessOrEqual    = SimpleTerm &quot;&lt;=&quot; Expression
+        Equal          = SimpleTerm &quot;==&quot; Expression
+        InEqual        = SimpleTerm &quot;!=&quot; Expression
+        GreaterOrEqual = SimpleTerm &quot;&gt;=&quot; Expression
+        Greater        = SimpleTerm &quot;&gt;&quot;  Expression</code></pre>
         <table>
         <thead>
         <tr class="header">
@@ -2964,7 +3031,9 @@
         <pre><code>2 * (3 + 4) // 14</code></pre>
         <h3 id="terminals">Terminals</h3>
         <p>In EBNF, terminal rules are those which only contain terminal symbols on the right hand side. A symbol is terminal if it is enclosed in double quotes. Note that for the <code>Char</code> rule, we have chosen to not enumerate all actual ASCII characters and have used a placeholder string instead.</p>
-        <p>Alpha = “a” | “b” | … “z” | “A” | “B” | … “Z” Numeric = “0” | “1” | … “9” Char = Any ASCII character</p>
+        <pre><code>Alpha   = &quot;a&quot; | &quot;b&quot; | ... &quot;z&quot; | &quot;A&quot; | &quot;B&quot; | ... &quot;Z&quot;
+        Numeric = &quot;0&quot; | &quot;1&quot; | ... &quot;9&quot;
+        Char    = Any ASCII character</code></pre>
         <p>This concludes the manual for TrenchBroom’s expression language.</p>
         <h2 id="solving-problems">Solving Problems</h2>
         <p>This section contains some information about what you can do if you run into problems when using TrenchBroom.</p>
@@ -3019,23 +3088,44 @@
         <p>If the model expression has a scale expression, then its result is used as the scale value for the model. If the expression cannot be evaluated, or if no such expression is given, then the default scale expression from the game configuration is evaluated instead. Refer to <a href="#game_configuration_files_entities">this section</a> for more information about <code>SCALE_EXPRESSION</code> and the default scale expression.</p>
         <h4 id="basic-examples">Basic Examples</h4>
         <p>So a valid model definitions might look like this:</p>
-        <p>// use the model found at the given path with skin 0 and frame 0 model(“progs/armor”)</p>
-        <p>// use the model found at the given path with skin 1 and frame 0 model({ “path”: “progs/armor”, “skin”: 1 })</p>
-        <p>// use the model found at the given path with skin 1 and frame 3 model({ “path” : “progs/armor”, “skin” : 1, “frame”: 3 })</p>
-        <p>// set a fixed uniform model scale factor 2 model({ “path” : “progs/armor”, “scale” : 2 })</p>
+        <pre><code>// use the model found at the given path with skin 0 and frame 0
+        model(&quot;progs/armor&quot;)
+
+        // use the model found at the given path with skin 1 and frame 0
+        model({
+          &quot;path&quot;: &quot;progs/armor&quot;,
+          &quot;skin&quot;: 1
+        })
+
+        // use the model found at the given path with skin 1 and frame 3
+        model({
+          &quot;path&quot; : &quot;progs/armor&quot;,
+          &quot;skin&quot; : 1,
+          &quot;frame&quot;: 3
+        })
+
+        // set a fixed uniform model scale factor 2
+        model({
+          &quot;path&quot; : &quot;progs/armor&quot;,
+          &quot;scale&quot; : 2
+        })</code></pre>
         <p>Sometimes, the actual model that is displayed in game depends on the value of an entity property. TrenchBroom allows you to mimic this behavior by using conditional expressions using the switch and case operators and by referring to the entity properties as variables in the expressions. Let’s look at an example where we combine several model definitions using a literal value.</p>
         <pre><code>model({{
-        dangle == &quot;1&quot; -&gt; { &quot;path&quot;: &quot;progs/voreling.mdl&quot;, &quot;skin&quot;: 0, &quot;frame&quot;: 13 },
-                             { &quot;path&quot;: &quot;progs/voreling.mdl&quot; }
+          dangle == &quot;1&quot; -&gt; { &quot;path&quot;: &quot;progs/voreling.mdl&quot;, &quot;skin&quot;: 0, &quot;frame&quot;: 13 },
+                          { &quot;path&quot;: &quot;progs/voreling.mdl&quot; }
         }})</code></pre>
         <p>The voreling has two states, either as a normal monster, standing on the ground, or hanging from the ceiling. The model expression contains a switch expression (note the double braces) that comprises of a case expression (note the arrow operator) and a literal map expression. You can interpret this expression as follows:</p>
-        <p>dangle == “1” // If the value of property ‘dangle’ equals “1” -&gt; // then { “path”: “progs/voreling.mdl”, “skin”: 0, “frame”: 13 } // use this as the model. , // Otherwise, { “path”: “progs/voreling.mdl” } // use this as the model.</p>
+        <pre><code>dangle == &quot;1&quot;                                             // If the value of property &#39;dangle&#39; equals &quot;1&quot;
+        -&gt;                                                        // then
+        { &quot;path&quot;: &quot;progs/voreling.mdl&quot;, &quot;skin&quot;: 0, &quot;frame&quot;: 13 }  // use this as the model.
+        ,                                                         // Otherwise,
+        { &quot;path&quot;: &quot;progs/voreling.mdl&quot; }                          // use this as the model.</code></pre>
         <p>If you have problems understanding this syntax, you should read the section on TrenchBroom’s <a href="#expression_language">expression language</a>.</p>
         <p>The following example shows a combination of model definitions using flag values.</p>
         <pre><code>model({{
-            spawnflags == 2 -&gt; &quot;maps/b_bh100.bsp&quot;,
-            spawnflags == 1 -&gt; &quot;maps/b_bh10.bsp&quot;,
-                               &quot;maps/b_bh25.bsp&quot;
+          spawnflags == 2 -&gt; &quot;maps/b_bh100.bsp&quot;,
+          spawnflags == 1 -&gt; &quot;maps/b_bh10.bsp&quot;,
+                             &quot;maps/b_bh25.bsp&quot;
         }})</code></pre>
         <p>As you can see, there are three models attached to the Health kit, <code>maps/b_bh25.bsp, maps/b_bh10.bsp</code> and <code>maps/b_bh100.bsp</code>. This is because the Health kit uses three different models depending on what spawnflags are checked. If <code>ROTTEN</code> is checked, it uses <code>maps/b_bh10.bsp</code>, which is the dim (rotten) health kit and if <code>MEGAHEALTH</code> is checked, then it uses maps/b_bh100.bsp which is the megahealth powerup. If neither are checked, it uses the standard health kit.</p>
         <p>Accordingly, the nested case expressions inspect the value of the <code>spawnflags</code> property to determine the correct model. Since there is no need to specify a skin or a frame for these models, the expressions only return strings as a shorthand.</p>
@@ -3086,21 +3176,45 @@
           &quot;frame&quot;: frame
         })</code></pre>
         <p>Then, if you create an entity with the appropriate classname and specifies three properties as follows</p>
-        <p>{ “classname” “mydynamicmodelentity” “mdl” “progs/armor.mdl” “skin” “2” “frame” “1” }</p>
+        <pre><code>{
+          &quot;classname&quot; &quot;mydynamicmodelentity&quot;
+          &quot;mdl&quot; &quot;progs/armor.mdl&quot;
+          &quot;skin&quot; &quot;2&quot;
+          &quot;frame&quot; &quot;1&quot;
+        }</code></pre>
         <p>TrenchBroom will display the second frame of the <code>progs/armor.mdl</code> model using its third skin. If you change these values, the model will be updated in the 3D and 2D viewports accordingly.</p>
         <h4 id="differences-between-def-fgd-and-ent-files">Differences Between DEF, FGD and ENT Files</h4>
         <p>In both files, the model definitions are just specified alongside with other entity property definitions (note the semicolon after the model definition – this is only necessary in DEF files). An example from a DEF file might look as follows.</p>
-        <p>/*QUAKED item_health (.3 .3 1) (0 0 0) (32 32 32) ROTTEN MEGAHEALTH {     model({{ spawnflags == 2 -&gt; “maps/b_bh100.bsp”, spawnflags == 1 -&gt; “maps/b_bh10.bsp”, “maps/b_bh25.bsp” }}); } Health box. Normally gives 25 points.</p>
-        <p>Flags: “rotten” gives 15 points “megahealth” will add 100 health, then rot you down to your maximum health limit one point per second */</p>
+        <pre><code>/*QUAKED item_health (.3 .3 1) (0 0 0) (32 32 32) ROTTEN MEGAHEALTH
+        {
+          model({{ spawnflags == 2 -&gt; &quot;maps/b_bh100.bsp&quot;, spawnflags == 1 -&gt; &quot;maps/b_bh10.bsp&quot;, &quot;maps/b_bh25.bsp&quot; }});
+        }
+        Health box. Normally gives 25 points.
+
+        Flags:
+        &quot;rotten&quot;
+        gives 15 points
+        &quot;megahealth&quot;
+        will add 100 health, then rot you down to your maximum health limit
+        one point per second
+        */</code></pre>
         <p>An example from an FGD file might look as follows.</p>
-        <p><span class="citation" data-cites="PointClass">@PointClass</span> base(Monster) size(-32 -32 -24, 32 32 64)     model({{ perch == “1” -&gt; “progs/gaunt.mdl”, { “path”: “progs/gaunt.mdl”, “skin”: 0, “frame”: 24 } }})     = monster_gaunt : “Gaunt” [     perch(choices) : “Starting pose” : 0 =     [         0 : “Flying”         1 : “On ground”     ] ]</p>
+        <pre><code>@PointClass base(Monster) size(-32 -32 -24, 32 32 64)
+                    model({{ perch == &quot;1&quot; -&gt; &quot;progs/gaunt.mdl&quot;, { &quot;path&quot;: &quot;progs/gaunt.mdl&quot;, &quot;skin&quot;: 0, &quot;frame&quot;: 24 } }})
+                    = monster_gaunt : &quot;Gaunt&quot;
+        [
+          perch(choices) : &quot;Starting pose&quot; : 0 =
+          [
+            0 : &quot;Flying&quot;
+            1 : &quot;On ground&quot;
+          ]
+        ]</code></pre>
         <p>To improve compatibility to other editors, the model definition can also be named <em>studio</em> or <em>studioprop</em> in FGD files.</p>
         <p>In an ENT file, the same model specification might look like this.</p>
-        <pre><code>&lt;point
-          name=&quot;ammo_bfg&quot; color=&quot;.3 .3 1&quot;
-          box=&quot;-16 -16 -16 16 16 16&quot;
-          model=&quot;{{ perch == &#39;1&#39; -&gt; &#39;progs/gaunt.mdl&#39;, { &#39;path&#39;: &#39;progs/gaunt.mdl&#39;, &#39;skin&#39;: 0, &#39;frame&#39;: 24 } }}&quot;</code></pre>
-        <p>/&gt;</p>
+        <pre><code>&lt;point name=&quot;ammo_bfg&quot; color=&quot;.3 .3 1&quot;
+               box=&quot;-16 -16 -16 16 16 16&quot;
+               model=&quot;{{ perch == &#39;1&#39; -&gt; &#39;progs/gaunt.mdl&#39;, { &#39;path&#39;: &#39;progs/gaunt.mdl&#39;, &#39;skin&#39;: 0, &#39;frame&#39;: 24 } }}&quot;
+        /&gt;</code></pre>
         <h2 id="point-files-and-portal-files">Point Files and Portal Files</h2>
         <p>TrenchBroom can load point files (PTS) generated by QBSP, which help locate leaks. After you open a point file with <script>print_menu_item("Menu/File/Load Point File…");</script>, it’s rendered as a sequence of green line segments which will connect the map interior to the void. Hit <script>print_menu_item("Menu/View/Camera/Move to Next Point");</script> to move the camera to the first point, and continue hitting <script>print_menu_item("Menu/View/Camera/Move to Next Point");</script> to fly along the path, which should show you where the leak is.</p>
         <p>Portal files (PRT), also generated by QBSP, let you visualize the portals between BSP leafs. They can be loaded with <script>print_menu_item("Menu/File/Load Portal File…");</script> and are rendered as translucent red polygons.</p>
@@ -3185,96 +3299,96 @@
         </ul>
         <p>The game configuration is an <a href="#expression_language">expression language</a> map with a specific structure, which is explained using an example.</p>
         <pre><code>{
-            &quot;version&quot;: 4, // mandatory, indicates the version of the file&#39;s syntax
-            &quot;name&quot;: &quot;Example Resembling Quake 2&quot;, // mandatory, the name to use in the UI
-            &quot;icon&quot;: &quot;Icon.png&quot;, // optional, the icon to show in the UI
-            &quot;fileformats&quot;: [ // supported file formats, each with optional initial map to use as &quot;new map&quot;
-                { &quot;format&quot;: &quot;Quake2&quot; },
-                { &quot;format&quot;: &quot;Quake2 (Valve)&quot;, &quot;initialmap&quot;: &quot;initial_valve.map&quot; }
+          &quot;version&quot;: 4, // mandatory, indicates the version of the file&#39;s syntax
+          &quot;name&quot;: &quot;Example Resembling Quake 2&quot;, // mandatory, the name to use in the UI
+          &quot;icon&quot;: &quot;Icon.png&quot;, // optional, the icon to show in the UI
+          &quot;fileformats&quot;: [ // supported file formats, each with optional initial map to use as &quot;new map&quot;
+            { &quot;format&quot;: &quot;Quake2&quot; },
+            { &quot;format&quot;: &quot;Quake2 (Valve)&quot;, &quot;initialmap&quot;: &quot;initial_valve.map&quot; }
+          ],
+          &quot;filesystem&quot;: { // defines the file system used to search for game assets
+            &quot;searchpath&quot;: &quot;baseq2&quot;, // the path in the game folder at which to search for assets
+            &quot;packageformat&quot;: { &quot;extension&quot;: &quot;.pak&quot;, &quot;format&quot;: &quot;idpak&quot; } // the package file format
+          },
+          &quot;textures&quot;: { // where to search for textures and how to read them, see below
+            &quot;root&quot;: &quot;textures&quot;,
+            &quot;extensions&quot;: [ &quot;.wal&quot; ],
+            &quot;palette&quot;: &quot;pics/colormap.pcx&quot;,
+          },
+          &quot;entities&quot;: { // the builtin entity definition files for this game
+            &quot;definitions&quot;: [ &quot;Quake2.fgd&quot; ],
+            &quot;defaultcolor&quot;: &quot;0.6 0.6 0.6 1.0&quot;,
+            &quot;scale&quot;: [ modelscale, modelscale_vec ]
+          },
+          &quot;tags&quot;: { // &quot;smart tags&quot; select or modify a brush/face based on its characteristics
+            &quot;brush&quot;: [
+              {
+                &quot;name&quot;: &quot;Trigger&quot;,
+                &quot;attribs&quot;: [ &quot;transparent&quot; ],
+                &quot;match&quot;: &quot;classname&quot;,
+                &quot;pattern&quot;: &quot;trigger*&quot;,
+                &quot;texture&quot;: &quot;trigger&quot;
+              }
             ],
-            &quot;filesystem&quot;: { // defines the file system used to search for game assets
-                &quot;searchpath&quot;: &quot;baseq2&quot;, // the path in the game folder at which to search for assets
-                &quot;packageformat&quot;: { &quot;extension&quot;: &quot;.pak&quot;, &quot;format&quot;: &quot;idpak&quot; } // the package file format
-            },
-            &quot;textures&quot;: { // where to search for textures and how to read them, see below
-                &quot;root&quot;: &quot;textures&quot;,
-                &quot;extensions&quot;: [ &quot;.wal&quot; ],
-                &quot;palette&quot;: &quot;pics/colormap.pcx&quot;,
-            },
-            &quot;entities&quot;: { // the builtin entity definition files for this game
-                &quot;definitions&quot;: [ &quot;Quake2.fgd&quot; ],
-                &quot;defaultcolor&quot;: &quot;0.6 0.6 0.6 1.0&quot;,
-                &quot;scale&quot;: [ modelscale, modelscale_vec ]
-            },
-            &quot;tags&quot;: { // &quot;smart tags&quot; select or modify a brush/face based on its characteristics
-                &quot;brush&quot;: [
-                    {
-                        &quot;name&quot;: &quot;Trigger&quot;,
-                        &quot;attribs&quot;: [ &quot;transparent&quot; ],
-                        &quot;match&quot;: &quot;classname&quot;,
-                        &quot;pattern&quot;: &quot;trigger*&quot;,
-                        &quot;texture&quot;: &quot;trigger&quot;
-                    }
-                ],
-                &quot;brushface&quot;: [
-                    {
-                        &quot;name&quot;: &quot;Clip&quot;,
-                        &quot;attribs&quot;: [ &quot;transparent&quot; ],
-                        &quot;match&quot;: &quot;texture&quot;,
-                        &quot;pattern&quot;: &quot;clip&quot;
-                    },
-                    {
-                        &quot;name&quot;: &quot;Liquid&quot;,
-                        &quot;match&quot;: &quot;contentflag&quot;,
-                        &quot;flags&quot;: [ &quot;lava&quot;, &quot;water&quot; ]
-                    },
-                    {
-                        &quot;name&quot;: &quot;Transparent&quot;,
-                        &quot;attribs&quot;: [ &quot;transparent&quot; ],
-                        &quot;match&quot;: &quot;surfaceflag&quot;,
-                        &quot;flags&quot;: [ &quot;trans33&quot; ]
-                    }
-                ]
-            },
-            &quot;faceattribs&quot;: { // bitflags assigned to a face to affect its behavior
-                &quot;surfaceflags&quot;: [
-                    {
-                        &quot;name&quot;: &quot;light&quot;,
-                        &quot;description&quot;: &quot;Emit light from the surface, brightness is specified in the &#39;value&#39; field&quot;
-                    },
-                    {
-                        &quot;name&quot;: &quot;trans33&quot;,
-                        &quot;description&quot;: &quot;The surface is 33% transparent&quot;
-                    },
-                    {
-                        &quot;name&quot;: &quot;hint&quot;,
-                        &quot;description&quot;: &quot;Make a primary bsp splitter&quot;
-                    }
-                ],
-                &quot;contentflags&quot;: [
-                    {
-                        &quot;name&quot;: &quot;solid&quot;,
-                        &quot;description&quot;: &quot;Default for all brushes&quot;
-                    },
-                    {
-                        &quot;name&quot;: &quot;lava&quot;,
-                        &quot;description&quot;: &quot;The brush is lava&quot;
-                    },
-                    {
-                        &quot;unused&quot;: true
-                    },
-                    {
-                        &quot;name&quot;: &quot;water&quot;,
-                        &quot;description&quot;: &quot;The brush is water&quot;
-                    }
-                ]
-            },
-            &quot;softMapBounds&quot;:&quot;-4096 -4096 -4096 4096 4096 4096&quot;,
-            &quot;compilationTools&quot;: [
-                { &quot;name&quot;: &quot;bsp&quot; },
-                { &quot;name&quot;: &quot;vis&quot; },
-                { &quot;name&quot;: &quot;rad&quot; }
+            &quot;brushface&quot;: [
+              {
+                &quot;name&quot;: &quot;Clip&quot;,
+                &quot;attribs&quot;: [ &quot;transparent&quot; ],
+                &quot;match&quot;: &quot;texture&quot;,
+                &quot;pattern&quot;: &quot;clip&quot;
+              },
+              {
+                &quot;name&quot;: &quot;Liquid&quot;,
+                &quot;match&quot;: &quot;contentflag&quot;,
+                &quot;flags&quot;: [ &quot;lava&quot;, &quot;water&quot; ]
+              },
+              {
+                &quot;name&quot;: &quot;Transparent&quot;,
+                &quot;attribs&quot;: [ &quot;transparent&quot; ],
+                &quot;match&quot;: &quot;surfaceflag&quot;,
+                &quot;flags&quot;: [ &quot;trans33&quot; ]
+              }
             ]
+          },
+          &quot;faceattribs&quot;: { // bitflags assigned to a face to affect its behavior
+            &quot;surfaceflags&quot;: [
+              {
+                &quot;name&quot;: &quot;light&quot;,
+                &quot;description&quot;: &quot;Emit light from the surface, brightness is specified in the &#39;value&#39; field&quot;
+              },
+              {
+                &quot;name&quot;: &quot;trans33&quot;,
+                &quot;description&quot;: &quot;The surface is 33% transparent&quot;
+              },
+              {
+                &quot;name&quot;: &quot;hint&quot;,
+                &quot;description&quot;: &quot;Make a primary bsp splitter&quot;
+              }
+            ],
+            &quot;contentflags&quot;: [
+              {
+                &quot;name&quot;: &quot;solid&quot;,
+                &quot;description&quot;: &quot;Default for all brushes&quot;
+              },
+              {
+                &quot;name&quot;: &quot;lava&quot;,
+                &quot;description&quot;: &quot;The brush is lava&quot;
+              },
+              {
+                &quot;unused&quot;: true
+              },
+              {
+                &quot;name&quot;: &quot;water&quot;,
+                &quot;description&quot;: &quot;The brush is water&quot;
+              }
+            ]
+          },
+          &quot;softMapBounds&quot;:&quot;-4096 -4096 -4096 4096 4096 4096&quot;,
+          &quot;compilationTools&quot;: [
+            { &quot;name&quot;: &quot;bsp&quot; },
+            { &quot;name&quot;: &quot;vis&quot; },
+            { &quot;name&quot;: &quot;rad&quot; }
+          ]
         }</code></pre>
         <h4 id="versions">Versions</h4>
         <p>The game configuration files are versioned. Whenever a breaking change to the game configuration format is introduced, the version number will increase and TrenchBroom will reject the old format with an error message.</p>
@@ -3424,14 +3538,24 @@
         </table>
         <h4 id="material-configurations">Material Configurations</h4>
         <p>Every material configuration consists of a root search directory, and optionally a list of included file extensions, a palette path, an attribute for wad file lists and a list of exclusion patterns.</p>
-        <p>“materials”: { “root”: “textures”, “extensions”: [ “.D” ], “palette”: “pics/colormap.pcx”, “attribute”: “wad”, “excludes”: [ "*_norm“,”*_gloss" ], },</p>
+        <pre><code>&quot;materials&quot;: {
+          &quot;root&quot;: &quot;textures&quot;,
+          &quot;extensions&quot;: [ &quot;.D&quot; ],
+          &quot;palette&quot;: &quot;pics/colormap.pcx&quot;,
+          &quot;attribute&quot;: &quot;wad&quot;,
+          &quot;excludes&quot;: [ &quot;*_norm&quot;, &quot;*_gloss&quot; ],
+        },</code></pre>
         <p>The <code>root</code> key specifies the folder at which to search for the material packages. This folder is relative to the game file system set up according to the <code>filesystem</code> configuration earlier in the file. TrenchBroom will create a material collection for each folder contained in the root folder specified here.</p>
         <p>In the case of Quake 2, the builtin game configuration specifies the search path of the file system as <code>"baseq2"</code> and the material package root as <code>"textures"</code>, so TrenchBroom will create a material collection for each folder found in <code>&lt;Game Path&gt;/baseq2/textures</code>.</p>
         <p>TrenchBroom supports a wide array of image formats such as tga, pcx, jpeg, and so on. TrenchBroom uses the <a href="https://freeimage.sourceforge.io/">FreeImage Library</a> to load these images and supports any file type supported by this library.</p>
         <p>Optionally, you can specify a palette. The value of the <code>palette</code> key specifies a path, relative to the file system, where TrenchBroom will look for a palette file that comes with the game’s assets.</p>
         <p>The <code>attribute</code> key specifies the name of a worldspawn property where TrenchBroom will store the wad files in the map file.</p>
         <p>The optional <code>excludes</code> key specifies a list of patterns matched against material names which will be ignored and not displayed in the <a href="#material_browser">material browser</a>. Wildcards <code>*</code> and <code>?</code> are allowed. Use backslashes to escape literal <code>*</code> and <code>?</code> chars.</p>
-        <p>“materials”: { “root”: “textures”, “extensions”: [ "" ], “excludes”: [ "*_norm“,”*_gloss" ] },</p>
+        <pre><code>&quot;materials&quot;: {
+          &quot;root&quot;: &quot;textures&quot;,
+          &quot;extensions&quot;: [ &quot;&quot; ],
+          &quot;excludes&quot;: [ &quot;*_norm&quot;, &quot;*_gloss&quot; ]
+        },</code></pre>
         <h4 id="game_configuration_files_entities">Entity Configuration</h4>
         <p>In the entity configuration section, you can specify which entity definition files come with your game configuration, a default color for entities and an expression that yields a default scale when evaluated against an entities’ properties.</p>
         <pre><code>&quot;entities&quot;: { // the builtin entity definition files for this game
@@ -3476,15 +3600,15 @@
         <p>Each smart tag definition also makes one or more related <a href="#keyboard_shortcuts">keyboard shortcuts</a> available (searching the shortcuts by “Tags” will show all of these). Each tag will always have a related shortcut that can be used to toggle the visibility of brushes whose faces match the tag. Additional shortcuts may also be available to apply the characteristics of the tag to the current selection, or remove those characteristics. These shortcuts depend on the tag’s <code>match</code> criteria as described below.</p>
         <p>The tags are specified separately for brushes and faces under the corresponding keys:</p>
         <pre><code>&quot;tags&quot;: {
-            &quot;brush&quot;: [ ... ],
-            &quot;brushface&quot;: [ ... ]
+          &quot;brush&quot;: [ ... ],
+          &quot;brushface&quot;: [ ... ]
         }</code></pre>
         <p>Each of these keys has a list of tags. Each tag looks as follows.</p>
         <pre><code>{
-            &quot;name&quot;: &quot;Clip&quot;,
-            &quot;attribs&quot;: [ &quot;transparent&quot; ],
-            &quot;match&quot;: &quot;material&quot;,
-            &quot;pattern&quot;: &quot;clip&quot;
+          &quot;name&quot;: &quot;Clip&quot;,
+          &quot;attribs&quot;: [ &quot;transparent&quot; ],
+          &quot;match&quot;: &quot;material&quot;,
+          &quot;pattern&quot;: &quot;clip&quot;
         },</code></pre>
         <p>The only attribute type currently supported in the <code>attribs</code> list is “transparent”, which as mentioned above will cause faces matching this tag to be rendered with partial transparency in the 3D viewport.</p>
         <p>The <code>match</code> key specifies how TrenchBroom will determine whether or not this tag applies to a brush or face.</p>
@@ -3559,40 +3683,40 @@
         <p>The value for each of those keys is a list of flag definitions. Note that the position of each flag definition within its list determines the value of that flag. Suppose that <code>i</code> is the 0-based list index of a flag; that flag’s value then corresponds to 2 to the power of <code>i</code>. The first flag in the list has value 2^0 = 1, the second has value 2^1 = 2, the third has value 2^2 = 4, and so on.</p>
         <p>Consider the following example:</p>
         <pre><code>&quot;faceattribs&quot;: {
-            &quot;surfaceflags&quot;: [
-                {
-                    &quot;name&quot;: &quot;light&quot;,
-                    &quot;description&quot;: &quot;Emit light from the surface, brightness is specified in the &#39;value&#39; field&quot;
-                }, // value 1
-                {
-                    &quot;name&quot;: &quot;slick&quot;,
-                    &quot;description&quot;: &quot;The surface is slippery&quot;
-                } // value 2
-            ],
-            &quot;contentflags&quot;: [
-                {
-                    &quot;name&quot;: &quot;solid&quot;,
-                    &quot;description&quot;: &quot;Default for all brushes&quot;
-                }, // value 1
-                {
-                    &quot;name&quot;: &quot;window&quot;,
-                    &quot;description&quot;: &quot;Brush is a window (not really used)&quot;
-                }, // value 2
-                {
-                    &quot;unused&quot;: true
-                }, // value 4
-                {
-                    &quot;name&quot;: &quot;playerclip&quot;,
-                    &quot;description&quot;: &quot;Player cannot pass through the brush (other things can)&quot;
-                }, // value 8
-            ]
+          &quot;surfaceflags&quot;: [
+            {
+              &quot;name&quot;: &quot;light&quot;,
+              &quot;description&quot;: &quot;Emit light from the surface, brightness is specified in the &#39;value&#39; field&quot;
+            }, // value 1
+            {
+              &quot;name&quot;: &quot;slick&quot;,
+              &quot;description&quot;: &quot;The surface is slippery&quot;
+            } // value 2
+          ],
+          &quot;contentflags&quot;: [
+            {
+              &quot;name&quot;: &quot;solid&quot;,
+              &quot;description&quot;: &quot;Default for all brushes&quot;
+            }, // value 1
+            {
+              &quot;name&quot;: &quot;window&quot;,
+              &quot;description&quot;: &quot;Brush is a window (not really used)&quot;
+            }, // value 2
+            {
+              &quot;unused&quot;: true
+            }, // value 4
+            {
+              &quot;name&quot;: &quot;playerclip&quot;,
+              &quot;description&quot;: &quot;Player cannot pass through the brush (other things can)&quot;
+            }, // value 8
+          ]
         }</code></pre>
         <p>There are two surface flags with values 1 and 2, and three valid content flags with values 1, 2, and 8. Note that the third element in the contentflags list, marked as unused, is just a placeholder. This is necessary so that the next flag, “playerclip”, receives the correct value of 8.</p>
         <p>For any flag definition <em>not</em> marked as unused, the <code>name</code> key is mandatory and the <code>description</code> key is optional. The name value will appear in the flag editor UI, and the description (if provided) will be visible in a tooltip when hovering over a flag checkbox.</p>
         <p>Note that before version 4 of the game config format, the <code>unused</code> key is not available for flag definitions. You can still effectively skip unused flag values in version 3 with placeholder flag definitions that by convention simply have the name “unused”, for example the third element in the contentflags list above could instead be</p>
-        <pre><code>        {
-                    &quot;name&quot;: &quot;unused&quot;
-                }, // value 4</code></pre>
+        <pre><code>{
+          &quot;name&quot;: &quot;unused&quot;
+        }, // value 4</code></pre>
         <p>This approach will however cause flags named “unused” to appear in the flag editor UI.</p>
         <p>The <code>faceattribs</code> object may contain one other key, <code>defaults</code>. The value of this key is an object that defines the initial values seen in the <a href="#face_attribute_editor">face attribute editor</a> for the face of a newly created brush. The following <code>defaults</code> keys are supported:</p>
         <table>
@@ -3643,8 +3767,8 @@
         <p>The optional <code>compilationTools</code> list identifies tool names that will appear in the <a href="#game_configuration">game configuration dialog</a>, allowing the user to associate these names with paths to tool executables. Such a name can be used as a variable in this game’s <a href="#compiling_maps">compilation profiles</a> to represent the associated path.</p>
         <p>Each element in the list is an object that must have a <code>name</code> key and may optionally have a <code>description</code> key (used for tooltips). An example from the Quake 3 game configuration that defines two tools:</p>
         <pre><code>&quot;compilationTools&quot;: [
-            { &quot;name&quot;: &quot;q3map2&quot;, &quot;description&quot;: &quot;Path to your q3map2 executable, which performs the main bsp/vis/light compilation phases&quot; },
-            { &quot;name&quot;: &quot;bspc&quot;, &quot;description&quot;: &quot;Path to your bspc or mbspc executable, which creates .aas files for bot support&quot; }
+          { &quot;name&quot;: &quot;q3map2&quot;, &quot;description&quot;: &quot;Path to your q3map2 executable, which performs the main bsp/vis/light compilation phases&quot; },
+          { &quot;name&quot;: &quot;bspc&quot;, &quot;description&quot;: &quot;Path to your bspc or mbspc executable, which creates .aas files for bot support&quot; }
         ]</code></pre>
         <h1 id="getting-involved">Getting Involved</h1>
         <h2 id="suggesting-a-feature">Suggesting a Feature</h2>
