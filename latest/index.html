@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="pandoc">
         <meta name="author" content="Kristian Duske">
-        <title>TrenchBroom 2025.2 Reference Manual</title>
+        <title>TrenchBroom 2025.3 Reference Manual</title>
     <link rel="icon" href="images/icon.png">
     <link rel="stylesheet" href="_reset.css">
     <link rel="stylesheet" href="_variables.css">
@@ -77,6 +77,7 @@
         </ul></li>
         <li><a href="#advanced-topics">Advanced Topics</a>
         <ul>
+        <li><a href="#automatic-updates">Automatic Updates</a></li>
         <li><a href="#command-repetition">Command Repetition</a></li>
         <li><a href="#issue_browser">Issue Browser</a></li>
         <li><a href="#compiling_maps">Compiling Maps</a></li>
@@ -102,8 +103,8 @@
         <div id="content_version_details">
           <img src="images/icon.png" alt="TrenchBroom Icon">
           <div>
-            <span id="content_version_heading">TrenchBroom 2025.2 Reference Manual</span>
-            <span><strong>Build:</strong> v2025.2 Release</span>
+            <span id="content_version_heading">TrenchBroom 2025.3 Reference Manual</span>
+            <span><strong>Build:</strong> v2025.3-RC1 Release</span>
           </div>
         </div>
         <div id="content_version_links">
@@ -1839,6 +1840,29 @@
         </ul>
         <p>Note that if you assign a keyboard shortcut to different actions in the same context, the shortcut creates a conflict and you cannot exit the preference pane or close the dialog until you resolve the conflict. Conflicting shortcuts are highlighted in red.</p>
         <h1 id="advanced-topics">Advanced Topics</h1>
+        <h2 id="automatic-updates">Automatic Updates</h2>
+        <p>TrenchBroom can check for updates. If an update is available, it can be downloaded and installed from within TrenchBroom. If “Check for updates on startup” is enabled in the preferences, TrenchBroom will perform an update check when it starts.</p>
+        <p>TrenchBroom will notify you of a new update in the following places:</p>
+        <ul>
+        <li>The welcome window</li>
+        <li>The “About TrenchBroom” dialog</li>
+        <li>The update preferences</li>
+        <li>The status bar</li>
+        </ul>
+        <p>In each of these places, the status of the updater will be shown as a text. If a user action is available, a clickable link will appear. For example, if an update is available, a link labeled “Update available” appears. Clicking the link will bring up a dialog where the update can be downloaded and installed.</p>
+        <figure>
+        <img src="images/UpdateIndicator.png" alt="" /><figcaption>Update Indicator (macOS)</figcaption>
+        </figure>
+        <p>In the above screenshot, the updater hasn’t performed an update check yet, so the link is labeled “Check for updates”. Clicking this link will start an update check.</p>
+        <figure>
+        <img src="images/UpdatePreferences.png" alt="" /><figcaption>Update Preferences (macOS)</figcaption>
+        </figure>
+        <p>The updater can be configured in the Preferences. The following settings are available:</p>
+        <ul>
+        <li>Check for updates on startup: If this is checked, the TrenchBroom will check for updates automatically when it starts.</li>
+        <li>Include pre-releases: If this is checked, then TrenchBroom will include pre-releases in the update check. Pre-releases are versions of TrenchBroom that are not yet considered stable. They may contain new features or bug fixes that are not yet part of a stable release.</li>
+        </ul>
+        <p>Note that TrenchBroom doesn’t send any private information about your or your computer when it performs an update check. We don’t collect any data about you. To perform the update check, TrenchBroom sends one request to GitHub via HTTPS, and to download an update, it sends another HTTPS requests to wherever the update file ist hosted (currently these files are all hosted on GitHub, too).</p>
         <h2 id="command-repetition">Command Repetition</h2>
         <p>Editing brushwork often consists of repeating the same steps over and over. As an example, consider building a spiral stair case. You start by cutting out a brush that represents one step of the stair case. Then you duplicate that brush, move it upward and rotate it about the center axis of the stair case. And the you repeat these actions for every step of the stairset. TrenchBroom has a feature called <em>command repetition</em> that is designed to automate some part of this process for you.</p>
         <p>Repeating commands is similar to having an automatic Macro recorder. Remember that TrenchBroom already records everything you do to provide <a href="#undo_redo">undo and redo</a>. In addition to undoing your actions, TrenchBroom also uses the recorded information to allow you to repeat some of your most recently performed actions. In the example of the stairwell, you would want to repeat the duplication, the translation, and the rotation actions over and over with a single key stroke. The only problem is that you need to determine which of the most recently performed actions should be repeated. This is done in two ways. First, TrenchBroom automatically forgets all repeatable actions when the selection changes. So if you select some objects and choose <script>print_menu_item("Menu/Edit/Repeat");</script> directly after selecting some objects, nothing will happen because all repeatable actions have been discarded. Second, you can tell TrenchBroom to discard all repeatable actions by choosing <script>print_menu_item("Menu/Edit/Clear Repeatable Commands");</script>. Think of this as telling TrenchBroom to start a new macro.</p>
