@@ -28,14 +28,10 @@
     <nav id="toc">
       <div id="toc_inner">
         <ul>
-        <li><a href="#introduction">Introduction</a>
-        <ul>
-        <li><a href="#features">Features</a></li>
-        <li><a href="#about-this-document">About this Document</a></li>
-        </ul></li>
+        <li><a href="#introduction">Introduction</a></li>
         <li><a href="#getting_started">Getting Started</a>
         <ul>
-        <li><a href="#preliminaries">Preliminaries</a></li>
+        <li><a href="#key_concepts">Key Concepts</a></li>
         <li><a href="#startup">Startup</a></li>
         <li><a href="#main_window">Main Window</a></li>
         <li><a href="#camera_navigation">Camera Navigation</a></li>
@@ -77,6 +73,7 @@
         </ul></li>
         <li><a href="#advanced-topics">Advanced Topics</a>
         <ul>
+        <li><a href="#map-definitions">Map Definitions</a></li>
         <li><a href="#automatic-updates">Automatic Updates</a></li>
         <li><a href="#command-repetition">Command Repetition</a></li>
         <li><a href="#issue_browser">Issue Browser</a></li>
@@ -114,86 +111,43 @@
       </aside>
       <article id="content_body">
         <h1 id="introduction">Introduction</h1>
-        <p>TrenchBroom is a level editing program for brush-based game engines such as Quake, Quake 2, and Hexen 2. TrenchBroom is easy to use and provides many simple and advanced tools to create complex and interesting levels with ease. This document contains the manual for TrenchBroom. Reading this document will teach you how to use TrenchBroom and how to use its advanced features.</p>
+        <p>TrenchBroom is a level editor for brush-based game engines such as Quake, Quake 2, Half-Life, and Hexen 2.</p>
         <h2 id="features">Features</h2>
         <ul>
-        <li><strong>General</strong>
-        <ul>
-        <li>Full support for editing in 3D and in up to three 2D views</li>
-        <li>High performance renderer with support for huge maps</li>
-        <li>Unlimited Undo and Redo</li>
-        <li>Macro-like command repetition</li>
-        <li>Linked groups</li>
-        <li>Issue browser with automatic quick fixes</li>
-        <li>Run external compilers and launch game engines</li>
-        <li>Point file support</li>
-        <li>Portal file support</li>
-        <li>Automatic backups</li>
-        <li>Free and cross platform</li>
-        </ul></li>
-        <li><strong>Brush Editing</strong>
-        <ul>
-        <li>Robust vertex editing with edge and face splitting and manipulating multiple vertices together</li>
-        <li>Clipping tool with two and three points</li>
-        <li>Scale and shear tools</li>
-        <li>CSG operations: merge, subtract, hollow</li>
-        <li>UV view for easy texturing manipulations</li>
-        <li>Precise alignment lock for all brush editing operations</li>
-        <li>Multiple material collections</li>
-        </ul></li>
-        <li><strong>Entity Editing</strong>
-        <ul>
-        <li>Entity browser with drag and drop support</li>
-        <li>Support for FGD, ENT and DEF files for entity definitions</li>
-        <li>Mod support</li>
-        <li>Entity link visualization</li>
-        <li>Displays 3D models in the editor (supports mdl, md2, md3, bsp, dkm)</li>
-        <li>Smart entity property editors</li>
+        <li><strong>General</strong><ul>
+            <li>3D and 2D brush editing</li>
+            <li>High performance renderer with support for huge maps</li>
+            <li>Run compilers (or any command line tool) and launch game engines</li>
+            </ul></li>
+        <li><strong>Brush Editing</strong><ul>
+            <li>Vertex tools with edge and face splitting</li>
+            <li>Clip, Scale and Shear tools</li>
+            <li>CSG operations: Merge, Subtract, Hollow</li>
+            <li>UV panel, texture alignment lock</li>
+            </ul></li>
+        <li><strong>Entity Editing</strong><ul>
+            <li>Entity browser with drag and drop support</li>
+            <li>Use FGD, ENT or DEF entity definition files</li>
+            <li>Visualize 3D entity models in editor</li>
         </ul></li>
         </ul>
-        <h2 id="about-this-document">About this Document</h2>
-        <p>This document is intended to help you learn to use the TrenchBroom editor. It is not intended to teach you how to map, and it isn’t a tutorial either. If you are having technical problems with your maps, or need information on how to create particular effects or setups for the particular game you are mapping for, you should ask other mappers for help (see <a href="#references_and_links">References and Links</a> to find mapping communities and such). This document will only teach you how to use this editor.</p>
+        <h2 id="about-this-document">This is just a manual</h2>
+        <p>Beyond specific editor features, this manual won't teach you how to map. If you have problems or need help, see <a href="#references_and_links">References and Links</a> to find mapping communities.</p>
         <h1 id="getting_started">Getting Started</h1>
-        <p>This section starts off with a small introduction to the most important technical terms related to mapping for brush-based engines. Additionally, we introduce some concepts on which TrenchBroom is built. Afterwards, we introduce the welcome window, the game selection dialog, we give an overview of the main window and explain the camera navigation in the 3D and 2D views.</p>
-        <h2 id="preliminaries">Preliminaries</h2>
-        <p>In this section we introduce some technical terms related to mapping in Quake-engine based games. It is not important that you understand every detail of all of these terms, but in order to understand how TrenchBroom works, you should have a general idea how maps are structured and how TrenchBroom views and manages that structure. In particular, this section introduces some concepts that we added to the map structures (without changing the file format, of course). Knowing and understanding these concepts will help you to get a grip on several important aspects of editing levels in TrenchBroom.</p>
-        <h3 id="map-definitions">Map Definitions</h3>
-        <p>In Quake-engine based games, levels are usually called maps. The following simple specification of the structure of a map is written in extended Backus-Naur-Form (EBNF), a simple syntax to define hierarchical structures that is widely used in computer science to define the syntax of computer languages. Don’t worry, you don’t have to understand EBNF as we will explain the definitions line by line.</p>
-        <pre><code>1. `Map      = Entity {Entity}`
-        2. `Entity   = {Property} {Brush}`
-        3. `Property = Key Value`
-        4. `Brush    = {Face}`
-        5. `Face     = Plane Texture Offset Scale Rotation ...`</code></pre>
-        <p>The first line specifies that a <strong>map</strong> contains an entity followed by zero or more entities. In EBNF, the braces surrounding the word “Entity” indicate that it stands for a possibly empty sequence of entities. Altogether, line one means that a map is just a sequence of one or more entities. An <strong>entity</strong> is a possibly empty sequence of properties followed by zero or more brushes. A <strong>property</strong> is just a key-value pair, and both the key and the value are strings (this information was omitted from the EBNF).</p>
-        <p>Line four defines a <strong>Brush</strong> as a possibly empty sequence of faces (but usually it will have at least four, otherwise the brush would be invalid). And in line five, we finally define that a <strong>Face</strong> has a plane, a material, the X and Y offsets and scales, the rotation angle, and possibly other attributes depending on the game.</p>
-        <p>In this document, we use the term <em>object</em> to refer to entities and brushes.</p>
-        <h3 id="trenchbrooms-view-of-maps">TrenchBroom’s View of Maps</h3>
-        <p>TrenchBroom organizes the objects of a map a bit differently than how they are organized in the map files. Firstly, TrenchBroom introduces two additional concepts: <a href="#layers">Layers</a> and <a href="#groups">Groups</a>. Secondly, the worldspawn entity is hidden from you and its properties are associated with the map. To differentiate TrenchBroom’s view from the view that other tools and compilers have, we use the term “world” instead of “map” here. In the remainder of this document, we will use the term “map” again.</p>
-        <pre><code>1. `World        = {Property} DefaultLayer {Layer}`
-        2. `DefaultLayer = Layer`
-        3. `Layer        = Name {Group} {Entity} {Brush}`
-        4. `Group        = Name {Group} {Entity} {Brush}`</code></pre>
-        <p>The first line defines the structure of a map as TrenchBroom sees it. To TrenchBroom, a <strong>World</strong> consists of zero or more properties, a default layer, and zero or more additional layers. The second line specifies that the <strong>DefaultLayer</strong> is just a layer. Then, the third line defines what a <strong>Layer</strong> is: A layer has a name (just a string), and it contains zero or more groups, zero or more entities, and zero or more brushes. In TrenchBroom, layers are used to partition a map into several large areas in order to reduce visual clutter by hiding them. In contrast, groups are used to merge a small number of objects into one object so that they can all be edited as one. Like layers, a <strong>Group</strong> is composed of a name, zero or more groups, zero or more entities, and zero or more brushes. In case you didn’t notice, groups induce a hierarchy, that is, a group can contain other sub-groups. All other definitions are exactly the same as in the previous section.</p>
-        <p>To summarize, TrenchBroom sees a map as a hierarchy (a tree). The root of the hierarchy is called world and represents the entire map. The world consists first of layers, then groups, entities, and brushes, whereby groups can contain more groups, entities, and brushes, and entities can again contain brushes. Because groups can contain other groups, the hierarchy can be arbitrarily deep, although in practice groups will rarely contain more than one additional level of sub groups.</p>
-        <h3 id="brush_geometry">Brush Geometry</h3>
-        <p>In standard map files, the geometry of a brush is defined by a set of faces. Apart from the attributes defining the UV mapping, a face also specifies a plane using three plane points. The plane is oriented by the order in which the three points are written in the face specification in the map file. Here is an example:</p>
-        <pre><code>( 32 32 -3824  ) ( -32 32 -3824  ) ( -32 96 -3824 ) mmetal1_2 0 0 0 1 1</code></pre>
-        <p>The plane points are given as three groups of three numbers. Each group is made up of three numbers that specify the X,Y and Z coordinates of the respective plane point. The three points, p1, p2 and p3, define two vectors, v1 and v2, as follows:</p>
-        <pre><code>  *p2
-         /|\
-          |
-          v2
-          |
-        p1*--v1---&gt;*p3</code></pre>
-        <p>The normal of the plane is in the direction of the cross product of v1 and v2. In the diagram above, the plane normal points towards you. Together with its normal, the plane divides three dimensional space into two half spaces: The upper half space above the plane, and the lower half space below the plane. In this interpretation, the volume of the brush is the intersection of the lower half spaces defined by the face planes. This way of defining brushes has the advantage that all brushes are automatically convex. However, this representation of brushes does not directly contain any other geometric information of the brush, particularly its vertices, edges, and facets, which must be computed from the plane representation. In TrenchBroom, the vertices, edges, and facets are called the <strong>brush geometry</strong>. TrenchBroom uses the same method as the BSP compilers to compute the brush geometry. Having the brush geometry is necessary mainly for two things: Rendering and vertex editing.</p>
-        <h3 id="entity_definitions">Entity Definitions</h3>
-        <p>To TrenchBroom, entities are just a sequence of properties (key value pairs), most of which are without any special meaning. In particular, the entity properties do not specify which model TrenchBroom should display for the entity in its viewports. Additionally, some property values have specific types, such as color, angle, or position. But these types cannot be hardcoded into the editor, because depending on the game, mod, or entity, a property called “angle” may have a different meaning. To give TrenchBroom more information on how to interpret a particular entity and its properties, an entity definition is necessary. Entity definitions specify the spawnflags of an entity, the names and types of its properties, the model to display in the editor, and other things. They are usually specified in a separate file that you can <a href="#entity_definition_setup">load into the editor</a>.</p>
-        <h3 id="mods">Mods</h3>
-        <p>A mod (short for game modification) is a way of extending a Quake-engine based game with custom gameplay and assets. Custom assets include models, sounds, and materials. From the perspective of the game, a mod is a subdirectory in the game directory where the additional assets reside in the form of loose files or archives such as pak files. As far as TrenchBroom is concerned, a mod just provides assets, some of which replace existing assets from the game and some of which are new. For example, a mod might provide a new model for an entity, or it provides an entirely new entity. In order to make these new entities usable in TrenchBroom, two things are required: First, TrenchBroom needs an entity definition for these entities, and TrenchBroom needs to know where it should look for the models to display in the viewports. The first issue can be addressed by pointing TrenchBroom to an alternate <a href="#entity_definitions">entity definition file</a>, and the second issue can be addressed by <a href="#mod_setup">adding a mod directory</a> for the current map.</p>
-        <p>Every game has a default mod which is always loaded by TrenchBroom. As an example, the default mod for Quake is <em>id1</em>, which is the directory that contains all game content. TrenchBroom supports multiple mods, and in the case of multiple mods, there has to be a policy for resolving name conflicts between resources. For example, a mod might provide an entity model for an entity defined in the default mod in order to replace the default model with a more detailed one. To do this, the mod provides an entity model with the same name as the one it wants to replace. To resolve such name conflicts, TrenchBroom assigns priorities for mods, and if a name conflict occurs between different mods, the mod with the highest priority wins. Note that the default mod always has the lowest priority.</p>
-        <h3 id="materials">Materials and Material Collections</h3>
-        <p>A material defines how a surface is rendered and how it interacts with light. In TrenchBroom, materials are usually closely related to textures. When TrenchBroom finds a texture on the filesystem, it automatically creates a default material for it. For Quake 3, additional material properties are read from shader files. Materials are usually not provided individually, but as material collections. A material collection can be a directory containing loose image files, or it can be an archive such as a wad file. Some games such as Quake 2 come with textures that are readily loadable by TrenchBroom. Such textures are called <em>internal</em>. <em>External</em> textures on the other hand are textures that you provide by loading a wad file. Since some games such as Quake don’t come with their own textures readily available, you have to obtain the textures you wish to use and add them to TrenchBroom manually by <a href="#material_management">loading a wad file</a>.</p>
-        <p>Multiple material collections may contain a material with the same name, resulting in a name conflict. Such a conflict is resolved by observing the order in which the material collections were loaded - the material that was loaded most recently wins the conflict. You cannot control the load order unless you are using wad files.</p>
+        <h2 id="key_concepts">Key Concepts</h2>
+        <p>To use TrenchBroom effectively, you'll need to know some core Quake engine concepts, even if you're not making maps for Quake.</p>
+        <h3 id="entities_and_brushes">Maps, Entities, and Brushes</h3>
+        <p>Levels are called <strong>maps</strong>, stored in .MAP files.</p>
+        <p>A map is made of <strong>entities</strong>: Quake's general word for game objects, actors, or things. Players, monsters, items, doors, lights, sounds - each of these is a different type of entity you might have in your game.</p>
+        <p>There are two types of entities: a <strong>point entity</strong> has an "origin" (center) at a specific 3D point, but a <strong>brush entity</strong> has 3D shapes called "brushes".
+        <p><strong>Brushes</strong> are <strong>convex</strong> solids that must always bulge outward, like a pyramid or a cube. Brushes cannot be concave or curve inward, like a bowl or a banana.</p>
+        <h3 id="entity_definitions">Entity Definitions and Mods</h3>
+        <p>To place entities, you need to load <a href="#entity_definitions">entity definition files</a> (.FGD, .DEF, or .ENT files) that list each entity type and its <strong>entity properties</strong> like name, color, angle, or health. For example, a "light" entity could have a "light color" property, or a "monster_zombie" entity might have a "health" property. See <a href="#entity_definition_setup">Entity Definition Setup</a>.</p>
+        <p>To display models and other assets, you need to set a <strong>mod directory</strong>, which is like a project folder that contains all the files and subfolders you want to use. This is also a great place to put your entity definition file. Note that you can load multiple mods at once; if mods conflict (like using the same filenames) then TrenchBroom will use the higher priority mod files. See <a href="#mod_setup">Mod Setup</a>.</p>
+        <h3 id="textures_and_materials">Textures and Materials</h3>
+        <p><strong>Textures</strong> are flat 2D images wrapped around 3D objects. Quake and Half-Life store textures in .WAD files, Quake 2 uses .WAL files, or you can just load loose .PNG or .TGA image files.</p>
+        <p>In game engines, <strong>materials</strong> are files that define the overall surface appearance of a 3D model such as its color, shininess, or transparency. However, <strong>TrenchBroom does not currently have a scriptable material system</strong> and material support differs for each engine, e.g. .WAD texture names and Quake 3 shader scripts. For now, you can treat "material" as a generic word for "texture".</p>
+        <p>Materials / textures are grouped together into <strong>material collections</strong>, usually by .WAD file or by subfolder. When multiple collections have a material with the same name, TrenchBroom will use the most recently loaded material. See <a href="#material_management">Material Management</a>.</p>
         <h2 id="startup">Startup</h2>
         <p>The first thing you will see when TrenchBroom starts is the welcome window. This window allows you to open one of your most recently edited maps, to create a new map or to browse your computer for an existing map you wish to open in TrenchBroom.</p>
         <figure>
@@ -1840,6 +1794,35 @@
         </ul>
         <p>Note that if you assign a keyboard shortcut to different actions in the same context, the shortcut creates a conflict and you cannot exit the preference pane or close the dialog until you resolve the conflict. Conflicting shortcuts are highlighted in red.</p>
         <h1 id="advanced-topics">Advanced Topics</h1>
+        <h2 id="map-definitions">Map Definitions</h>
+        <p>In Quake-engine based games, levels are usually called maps. The following simple specification of the structure of a map is written in extended Backus-Naur-Form (EBNF), a simple syntax to define hierarchical structures that is widely used in computer science to define the syntax of computer languages. Don’t worry, you don’t have to understand EBNF as we will explain the definitions line by line.</p>
+        <pre><code>1. `Map      = Entity {Entity}`
+        2. `Entity   = {Property} {Brush}`
+        3. `Property = Key Value`
+        4. `Brush    = {Face}`
+        5. `Face     = Plane Texture Offset Scale Rotation ...`</code></pre>
+        <p>The first line specifies that a <strong>map</strong> contains an entity followed by zero or more entities. In EBNF, the braces surrounding the word “Entity” indicate that it stands for a possibly empty sequence of entities. Altogether, line one means that a map is just a sequence of one or more entities. An <strong>entity</strong> is a possibly empty sequence of properties followed by zero or more brushes. A <strong>property</strong> is just a key-value pair, and both the key and the value are strings (this information was omitted from the EBNF).</p>
+        <p>Line four defines a <strong>Brush</strong> as a possibly empty sequence of faces (but usually it will have at least four, otherwise the brush would be invalid). And in line five, we finally define that a <strong>Face</strong> has a plane, a material, the X and Y offsets and scales, the rotation angle, and possibly other attributes depending on the game.</p>
+        <p>In this document, we use the term <em>object</em> to refer to entities and brushes.</p>
+        <h3 id="trenchbrooms-view-of-maps">TrenchBroom’s View of Maps</h3>
+        <p>TrenchBroom organizes the objects of a map a bit differently than how they are organized in the map files. Firstly, TrenchBroom introduces two additional concepts: <a href="#layers">Layers</a> and <a href="#groups">Groups</a>. Secondly, the worldspawn entity is hidden from you and its properties are associated with the map. To differentiate TrenchBroom’s view from the view that other tools and compilers have, we use the term “world” instead of “map” here. In the remainder of this document, we will use the term “map” again.</p>
+        <pre><code>1. `World        = {Property} DefaultLayer {Layer}`
+        2. `DefaultLayer = Layer`
+        3. `Layer        = Name {Group} {Entity} {Brush}`
+        4. `Group        = Name {Group} {Entity} {Brush}`</code></pre>
+        <p>The first line defines the structure of a map as TrenchBroom sees it. To TrenchBroom, a <strong>World</strong> consists of zero or more properties, a default layer, and zero or more additional layers. The second line specifies that the <strong>DefaultLayer</strong> is just a layer. Then, the third line defines what a <strong>Layer</strong> is: A layer has a name (just a string), and it contains zero or more groups, zero or more entities, and zero or more brushes. In TrenchBroom, layers are used to partition a map into several large areas in order to reduce visual clutter by hiding them. In contrast, groups are used to merge a small number of objects into one object so that they can all be edited as one. Like layers, a <strong>Group</strong> is composed of a name, zero or more groups, zero or more entities, and zero or more brushes. In case you didn’t notice, groups induce a hierarchy, that is, a group can contain other sub-groups. All other definitions are exactly the same as in the previous section.</p>
+        <p>To summarize, TrenchBroom sees a map as a hierarchy (a tree). The root of the hierarchy is called world and represents the entire map. The world consists first of layers, then groups, entities, and brushes, whereby groups can contain more groups, entities, and brushes, and entities can again contain brushes. Because groups can contain other groups, the hierarchy can be arbitrarily deep, although in practice groups will rarely contain more than one additional level of sub groups.</p>
+        <h3 id="brush_geometry">Brush Geometry</h3>
+        <p>In standard map files, the geometry of a brush is defined by a set of faces. Apart from the attributes defining the UV mapping, a face also specifies a plane using three plane points. The plane is oriented by the order in which the three points are written in the face specification in the map file. Here is an example:</p>
+        <pre><code>( 32 32 -3824  ) ( -32 32 -3824  ) ( -32 96 -3824 ) mmetal1_2 0 0 0 1 1</code></pre>
+        <p>The plane points are given as three groups of three numbers. Each group is made up of three numbers that specify the X,Y and Z coordinates of the respective plane point. The three points, p1, p2 and p3, define two vectors, v1 and v2, as follows:</p>
+        <pre><code>  *p2
+         /|\
+          |
+          v2
+          |
+        p1*--v1---&gt;*p3</code></pre>
+        <p>The normal of the plane is in the direction of the cross product of v1 and v2. In the diagram above, the plane normal points towards you. Together with its normal, the plane divides three dimensional space into two half spaces: The upper half space above the plane, and the lower half space below the plane. In this interpretation, the volume of the brush is the intersection of the lower half spaces defined by the face planes. This way of defining brushes has the advantage that all brushes are automatically convex. However, this representation of brushes does not directly contain any other geometric information of the brush, particularly its vertices, edges, and facets, which must be computed from the plane representation. In TrenchBroom, the vertices, edges, and facets are called the <strong>brush geometry</strong>. TrenchBroom uses the same method as the BSP compilers to compute the brush geometry. Having the brush geometry is necessary mainly for two things: Rendering and vertex editing.</p>
         <h2 id="automatic-updates">Automatic Updates</h2>
         <p>TrenchBroom can check for updates. If an update is available, it can be downloaded and installed from within TrenchBroom. If “Check for updates on startup” is enabled in the preferences, TrenchBroom will perform an update check when it starts.</p>
         <p>TrenchBroom will notify you of a new update in the following places:</p>
