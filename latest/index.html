@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="pandoc">
         <meta name="author" content="Kristian Duske">
-        <title>TrenchBroom 2025.3 Reference Manual</title>
+        <title>TrenchBroom 2025.4-RC1 Reference Manual</title>
     <link rel="icon" href="images/icon.png">
     <link rel="stylesheet" href="_reset.css">
     <link rel="stylesheet" href="_variables.css">
@@ -103,8 +103,8 @@
         <div id="content_version_details">
           <img src="images/icon.png" alt="TrenchBroom Icon">
           <div>
-            <span id="content_version_heading">TrenchBroom 2025.3 Reference Manual</span>
-            <span><strong>Build:</strong> v2025.3 Release</span>
+            <span id="content_version_heading">TrenchBroom 2025.4-RC1 Reference Manual</span>
+            <span><strong>Build:</strong> v2025.4-RC1 Release</span>
           </div>
         </div>
         <div id="content_version_links">
@@ -1072,6 +1072,7 @@
         </tr>
         </tbody>
         </table>
+        <p>In addition to moving vertices, the vertex tool can also rotate, scale and shear vertices. To rotate vertices, bring up the <a href="#rotating_objects">rotate tool</a> via <script>print_menu_item("Menu/Edit/Tools/Rotate Tool");</script>, then use the rotation handle as usual. To scale them, use <script>print_menu_item("Menu/Edit/Tools/Scale Tool");</script> to enable the <a href="#scaling_objects">scale tool</a>, and use <script>print_menu_item("Menu/Edit/Tools/Shear Tool");</script> to shear them with the <a href="#shearing_objects">shear tool</a>.</p>
         <p>This concludes the functionality of the vertex tool. While it is very powerful, it should also be used with care, as vertex editing can sometimes create invalid brushes and microleaks in the map. To help you avoid such problems, the following section contains a few best practices you should keep in mind when you use the vertex tool.</p>
         <h4 id="edge_tool">Edge Tool</h4>
         <p>Using the edge tool, you can move individual edge around in 3D space. To activate the edge tool, choose Choose <script>print_menu_item("Menu/Edit/Tools/Edge Tool");</script>. When the edge tool is active, the edges of the selected brushes are rendered yellow to indicate that they allow manipulation. Furthermore, a handle appears at the center of each edge.</p>
