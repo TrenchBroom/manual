@@ -1,4 +1,3 @@
-QSocketNotifier: Can only be used with threads started with QThread
 const keys = {
     'Esc': 'Esc',
     'Tab': 'Tab',
@@ -223,9 +222,9 @@ const menu = {
     'Menu/File/Reload Material Collections': { path: ['File', 'Reload Material Collections'], shortcut: { key: 'F5', modifiers: [] } },
     'Menu/File/Reload Entity Definitions': { path: ['File', 'Reload Entity Definitions'], shortcut: { key: 'F6', modifiers: [] } },
     'Menu/File/Revert': { path: ['File', 'Revert Document'], shortcut: { key: '', modifiers: [] } },
-    'Menu/File/Close': { path: ['File', 'Close Document'], shortcut: { key: 'W', modifiers: ['Ctrl', ] } },
+    'Menu/File/Close': { path: ['File', 'Close Document'], shortcut: { key: 'F4', modifiers: ['Ctrl', ] } },
     'Menu/Edit/Undo': { path: ['Edit', 'Undo'], shortcut: { key: 'Z', modifiers: ['Ctrl', ] } },
-    'Menu/Edit/Redo': { path: ['Edit', 'Redo'], shortcut: { key: 'Z', modifiers: ['Ctrl', 'Shift', ] } },
+    'Menu/Edit/Redo': { path: ['Edit', 'Redo'], shortcut: { key: 'Y', modifiers: ['Ctrl', ] } },
     'Menu/Edit/Repeat': { path: ['Edit', 'Repeat Last Commands'], shortcut: { key: 'R', modifiers: ['Ctrl', ] } },
     'Menu/Edit/Clear Repeatable Commands': { path: ['Edit', 'Clear Repeatable Commands'], shortcut: { key: 'R', modifiers: ['Ctrl', 'Shift', ] } },
     'Menu/Edit/Cut': { path: ['Edit', 'Cut'], shortcut: { key: 'X', modifiers: ['Ctrl', ] } },
